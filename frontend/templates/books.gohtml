@@ -2,47 +2,45 @@
 <html>
 <head>
     <title>Library - Books</title>
-    <link rel="stylesheet" href="/static/tailwind.min.css">
+    <link rel="stylesheet" href="/static/pico.min.css">
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto py-8">
-        <h1 class="text-3xl font-bold mb-6 text-blue-700">Books</h1>
-        <div class="mb-4 flex gap-4">
-            <a href="/members" class="text-blue-600 hover:underline">Members</a>
-            <a href="/borrowed" class="text-blue-600 hover:underline">Borrowed Books</a>
-        </div>
-        <div class="overflow-x-auto">
-        <table class="min-w-full bg-white shadow rounded-lg">
-            <thead class="bg-blue-100">
+<body>
+    <main class="container">
+        <h1>Books</h1>
+        <nav>
+            <a href="/members">Members</a>
+            <a href="/borrowed">Borrowed Books</a>
+        </nav>
+        <table>
+            <thead>
                 <tr>
-                    <th class="py-2 px-4">ID</th>
-                    <th class="py-2 px-4">Title</th>
-                    <th class="py-2 px-4">Author</th>
-                    <th class="py-2 px-4">ISBN</th>
-                    <th class="py-2 px-4">Genre</th>
-                    <th class="py-2 px-4">Year</th>
-                    <th class="py-2 px-4">Available</th>
-                    <th class="py-2 px-4">Total</th>
-                    <th class="py-2 px-4">Details</th>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>ISBN</th>
+                    <th>Genre</th>
+                    <th>Year</th>
+                    <th>Available</th>
+                    <th>Total</th>
+                    <th>Details</th>
                 </tr>
             </thead>
             <tbody>
                 {{range .}}
-                <tr class="border-b hover:bg-blue-50">
-                    <td class="py-2 px-4">{{.ID}}</td>
-                    <td class="py-2 px-4 font-semibold">{{.Title}}</td>
-                    <td class="py-2 px-4">{{.Author}}</td>
-                    <td class="py-2 px-4">{{.ISBN}}</td>
-                    <td class="py-2 px-4">{{.Genre}}</td>
-                    <td class="py-2 px-4">{{.PublicationYear}}</td>
-                    <td class="py-2 px-4">{{.CopiesAvailable}}</td>
-                    <td class="py-2 px-4">{{.CopiesTotal}}</td>
-                    <td class="py-2 px-4"><a href="/book?id={{.ID}}" class="text-blue-500 hover:underline">View</a></td>
+                <tr>
+                    <td>{{.ID}}</td>
+                    <td>{{.Title}}</td>
+                    <td>{{.Author}}</td>
+                    <td>{{.ISBN}}</td>
+                    <td>{{.Genre}}</td>
+                    <td>{{.PublicationYear}}</td>
+                    <td>{{.CopiesAvailable}}</td>
+                    <td>{{.CopiesTotal}}</td>
+                    <td><a href="/book?id={{.ID}}">View</a></td>
                 </tr>
                 {{end}}
             </tbody>
         </table>
-        </div>
-    </div>
+    </main>
 </body>
 </html>

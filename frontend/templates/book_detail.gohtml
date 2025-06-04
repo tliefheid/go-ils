@@ -2,41 +2,39 @@
 <html>
 <head>
     <title>Book Details</title>
-    <link rel="stylesheet" href="/static/tailwind.min.css">
+    <link rel="stylesheet" href="/static/pico.min.css">
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto py-8">
-        <a href="/" class="text-blue-600 hover:underline">&larr; Back to Books</a>
-        <h1 class="text-3xl font-bold mb-4 text-blue-700">{{.Book.Title}}</h1>
-        <div class="bg-white shadow rounded-lg p-6 mb-6">
-            <ul class="mb-4">
+<body>
+    <main class="container">
+        <a href="/">&larr; Back to Books</a>
+        <h1>{{.Book.Title}}</h1>
+        <section>
+            <ul>
                 <li><b>Author:</b> {{.Book.Author}}</li>
                 <li><b>ISBN:</b> {{.Book.ISBN}}</li>
                 <li><b>Genre:</b> {{.Book.Genre}}</li>
                 <li><b>Publication Year:</b> {{.Book.PublicationYear}}</li>
                 <li><b>Copies Available:</b> {{.Book.CopiesAvailable}} / {{.Book.CopiesTotal}}</li>
             </ul>
-        </div>
-        <div class="bg-blue-50 p-6 rounded-lg shadow">
-            <h2 class="text-xl font-semibold mb-2 text-blue-800">Borrow this Book</h2>
-            <form method="POST" action="/borrow" class="flex flex-col gap-4">
+        </section>
+        <section>
+            <h2>Borrow this Book</h2>
+            <form method="POST" action="/borrow">
                 <input type="hidden" name="book_id" value="{{.Book.ID}}">
-                <label class="block">
-                    <span class="text-gray-700">Member:</span>
-                    <select name="member_id" required class="mt-1 block w-full border border-gray-300 rounded p-2">
+                <label>Member:
+                    <select name="member_id" required>
                         <option value="">Select member</option>
                         {{range .Members}}
                         <option value="{{.ID}}">{{.Name}} ({{.MemberID}})</option>
                         {{end}}
                     </select>
                 </label>
-                <label class="block">
-                    <span class="text-gray-700">Days:</span>
-                    <input type="number" name="days" min="1" max="60" value="14" required class="mt-1 block w-24 border border-gray-300 rounded p-2">
+                <label>Days:
+                    <input type="number" name="days" min="1" max="60" value="14" required>
                 </label>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Borrow</button>
+                <button type="submit">Borrow</button>
             </form>
-        </div>
-    </div>
+        </section>
+    </main>
 </body>
 </html>
