@@ -86,7 +86,6 @@ func LookupByISBN(isbn string) (*Book, error) {
 		Title:           isbnInfo.Title,
 		Author:          authorName,
 		ISBN:            isbn,
-		Genre:           "Unknown", // Genre not available in Open Library API
 		PublicationYear: year,
 		CopiesTotal:     1,
 		CopiesAvailable: 1,

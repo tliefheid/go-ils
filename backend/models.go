@@ -8,7 +8,6 @@ type Book struct {
 	Title           string `json:"title"`
 	Author          string `json:"author"`
 	ISBN            string `json:"isbn"`
-	Genre           string `json:"genre"`
 	PublicationYear int    `json:"publication_year"`
 	CopiesTotal     int    `json:"copies_total"`
 	CopiesAvailable int    `json:"copies_available"`

@@ -20,7 +20,6 @@ type Book struct {
 	Title           string `json:"title"`
 	Author          string `json:"author"`
 	ISBN            string `json:"isbn"`
-	Genre           string `json:"genre"`
 	PublicationYear int    `json:"publication_year"`
 	CopiesTotal     int    `json:"copies_total"`
 	CopiesAvailable int    `json:"copies_available"`
@@ -430,21 +429,6 @@ func isbnLookupPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Prepare minimal book struct for backend
-		// newBook := map[string]interface{}{
-		// 	"title":            book["title"],
-		// 	"author":           "",
-		// 	"isbn":             isbn,
-		// 	"genre":            "",
-		// 	"publication_year": book["publish_date"],
-		// 	"copies_total":     1,
-		// 	"copies_available": 1,
-		// }
-
-		// if authors, ok := book["authors"].([]interface{}); ok && len(authors) > 0 {
-		// 	if authorMap, ok := authors[0].(map[string]interface{}); ok {
-		// 		newBook["author"] = authorMap["name"]
-		// 	}
-		// }
 
 		b, _ := json.Marshal(book)
 
@@ -514,7 +498,6 @@ func updateBookHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.FormValue("title")
 	author := r.FormValue("author")
 	isbn := r.FormValue("isbn")
-	genre := r.FormValue("genre")
 	publicationYear := r.FormValue("publication_year")
 
 	if bookID == "" || copiesTotal == "" || title == "" || author == "" || isbn == "" || publicationYear == "" {
@@ -553,7 +536,6 @@ func updateBookHandler(w http.ResponseWriter, r *http.Request) {
 	book.Title = title
 	book.Author = author
 	book.ISBN = isbn
-	book.Genre = genre
 	fmt.Sscanf(publicationYear, "%d", &book.PublicationYear)
 	fmt.Sscanf(copiesTotal, "%d", &book.CopiesTotal)
 

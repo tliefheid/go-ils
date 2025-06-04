@@ -22,7 +22,6 @@
                 <table>
                     <tr><th>Author</th><td>{{.Book.Author}}</td></tr>
                     <tr><th>ISBN</th><td>{{.Book.ISBN}}</td></tr>
-                    <tr><th>Genre</th><td>{{.Book.Genre}}</td></tr>
                     <tr><th>Publication Year</th><td>{{.Book.PublicationYear}}</td></tr>
                     <tr><th>Copies Available</th><td>{{.Book.CopiesAvailable}} / {{.Book.CopiesTotal}}</td></tr>
                 </table>
@@ -38,10 +37,7 @@
                         <input type="text" name="author" value="{{.Book.Author}}" required>
                     </label>
                     <label>ISBN:
-                        <input type="text" name="isbn" value="{{.Book.ISBN}}" required>
-                    </label>
-                    <label>Genre:
-                        <input type="text" name="genre" value="{{.Book.Genre}}">
+                        <input type="text" name="isbn" value="{{.Book.ISBN}}" readonly required>
                     </label>
                     <label>Publication Year:
                         <input type="number" name="publication_year" value="{{.Book.PublicationYear}}" required>

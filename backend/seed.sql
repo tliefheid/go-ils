@@ -4,7 +4,6 @@ INSERT INTO books (
         title,
         author,
         isbn,
-        genre,
         publication_year,
         copies_total,
         copies_available
@@ -13,7 +12,6 @@ VALUES (
         'The Go Programming Language',
         'Alan A. A. Donovan',
         '9780134190440',
-        'Programming',
         2015,
         5,
         5
@@ -22,7 +20,6 @@ VALUES (
         'Clean Code',
         'Robert C. Martin',
         '9780132350884',
-        'Programming',
         2008,
         3,
         3
@@ -31,7 +28,6 @@ VALUES (
         'The Pragmatic Programmer',
         'Andrew Hunt',
         '9780201616224',
-        'Programming',
         1999,
         4,
         4
@@ -40,7 +36,6 @@ VALUES (
         'To Kill a Mockingbird',
         'Harper Lee',
         '9780061120084',
-        'Fiction',
         1960,
         2,
         2
@@ -49,7 +44,6 @@ VALUES (
         '1984',
         'George Orwell',
         '9780451524935',
-        'Dystopian',
         1949,
         6,
         6

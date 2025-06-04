@@ -221,7 +221,7 @@ func runMigrations(db *sql.DB) error {
 
 // --- Book Handlers ---
 func listBooksHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, title, author, isbn, genre, publication_year, copies_total, copies_available FROM books")
+	rows, err := db.Query("SELECT id, title, author, isbn, publication_year, copies_total, copies_available FROM books")
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
@@ -232,7 +232,7 @@ func listBooksHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var b backend.Book
-		if err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.ISBN, &b.Genre, &b.PublicationYear, &b.CopiesTotal, &b.CopiesAvailable); err != nil {
+		if err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.ISBN, &b.PublicationYear, &b.CopiesTotal, &b.CopiesAvailable); err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			return
 		}
@@ -258,9 +258,9 @@ func addBookHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := `INSERT INTO books (title, author, isbn, genre, publication_year, copies_total, copies_available) VALUES ($1, $2, $3, $4, $5, $6, $6) RETURNING id`
+	query := `INSERT INTO books (title, author, isbn, publication_year, copies_total, copies_available) VALUES ($1, $2, $3, $4, $5, $5) RETURNING id`
 
-	err = db.QueryRow(query, b.Title, b.Author, b.ISBN, b.Genre, b.PublicationYear, b.CopiesTotal).Scan(&b.ID)
+	err = db.QueryRow(query, b.Title, b.Author, b.ISBN, b.PublicationYear, b.CopiesTotal).Scan(&b.ID)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
@@ -289,9 +289,9 @@ func editBookHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := `UPDATE books SET title=$1, author=$2, isbn=$3, genre=$4, publication_year=$5, copies_total=$6, copies_available=$7 WHERE id=$8`
+	query := `UPDATE books SET title=$1, author=$2, isbn=$3, publication_year=$4, copies_total=$5, copies_available=$6 WHERE id=$7`
 
-	_, err = db.Exec(query, b.Title, b.Author, b.ISBN, b.Genre, b.PublicationYear, b.CopiesTotal, b.CopiesAvailable, b.ID)
+	_, err = db.Exec(query, b.Title, b.Author, b.ISBN, b.PublicationYear, b.CopiesTotal, b.CopiesAvailable, b.ID)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
@@ -328,7 +328,7 @@ func deleteBookHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 func searchBooksHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query().Get("q")
 
-	rows, err := db.Query(`SELECT id, title, author, isbn, genre, publication_year, copies_total, copies_available FROM books WHERE title ILIKE '%' || $1 || '%' OR author ILIKE '%' || $1 || '%' OR isbn ILIKE '%' || $1 || '%'`, q)
+	rows, err := db.Query(`SELECT id, title, author, isbn, publication_year, copies_total, copies_available FROM books WHERE title ILIKE '%' || $1 || '%' OR author ILIKE '%' || $1 || '%' OR isbn ILIKE '%' || $1 || '%'`, q)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
@@ -340,7 +340,7 @@ func searchBooksHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var b backend.Book
-		if err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.ISBN, &b.Genre, &b.PublicationYear, &b.CopiesTotal, &b.CopiesAvailable); err != nil {
+		if err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.ISBN, &b.PublicationYear, &b.CopiesTotal, &b.CopiesAvailable); err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			return
 		}
