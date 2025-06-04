@@ -43,6 +43,13 @@
                 <button type="submit">Borrow</button>
             </form>
         </section>
+        <section style="margin-top:2em;">
+            <h2>Delete this Book</h2>
+            <form method="POST" action="/delete-book" onsubmit="return confirm('Are you sure you want to delete this book?');">
+                <input type="hidden" name="book_id" value="{{.Book.ID}}">
+                <button type="submit" style="background:#c00;color:#fff;">Delete Book</button>
+            </form>
+        </section>
     </main>
 </body>
 </html>

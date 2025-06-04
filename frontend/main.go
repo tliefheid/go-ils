@@ -48,6 +48,7 @@ func main() {
 	http.HandleFunc("/borrowed", borrowedBooksPage)
 	http.HandleFunc("/borrow", borrowBookHandler)
 	http.HandleFunc("/isbn-lookup", isbnLookupPage)
+	http.HandleFunc("/delete-book", deleteBookHandler)
 	log.Println("Frontend UI running on :3000")
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
@@ -246,4 +247,33 @@ func isbnLookupPage(w http.ResponseWriter, r *http.Request) {
 		}
 		templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Result": "Book saved to library!"})
 	}
+}
+
+func deleteBookHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", 405)
+		return
+	}
+	bookID := r.FormValue("book_id")
+	if bookID == "" {
+		http.Error(w, "Missing book ID", 400)
+		return
+	}
+	req, err := http.NewRequest(http.MethodDelete, backendURL+"/books?id="+bookID, nil)
+	if err != nil {
+		http.Error(w, "Failed to create request", 500)
+		return
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		http.Error(w, "Failed to contact backend", 500)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 204 {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, string(body), resp.StatusCode)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
