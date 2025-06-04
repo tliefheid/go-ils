@@ -1,0 +1,49 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Output folders
+/bin/
+/dist/
+
+# Dependency directories
+/vendor/
+
+# Go modules
+/go.sum
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+
+# Logs
+*.log
+
+# Database
+backend/db.sqlite
+backend/*.db
+
+# Docker
+**/db_data/
+
+# Misc
+*.tmp
+*.bak
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore coverage files
+coverage.out
+
+# Ignore generated files
+*.generated.go

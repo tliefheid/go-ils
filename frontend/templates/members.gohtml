@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library - Members</title>
+    <link rel="stylesheet" href="/static/tailwind.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto py-8">
+        <h1 class="text-3xl font-bold mb-6 text-green-700">Members</h1>
+        <div class="mb-4 flex gap-4">
+            <a href="/" class="text-blue-600 hover:underline">Books</a>
+            <a href="/borrowed" class="text-blue-600 hover:underline">Borrowed Books</a>
+        </div>
+        <div class="overflow-x-auto">
+        <table class="min-w-full bg-white shadow rounded-lg">
+            <thead class="bg-green-100">
+                <tr>
+                    <th class="py-2 px-4">ID</th>
+                    <th class="py-2 px-4">Name</th>
+                    <th class="py-2 px-4">Contact</th>
+                    <th class="py-2 px-4">Member ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .}}
+                <tr class="border-b hover:bg-green-50">
+                    <td class="py-2 px-4">{{.ID}}</td>
+                    <td class="py-2 px-4 font-semibold">{{.Name}}</td>
+                    <td class="py-2 px-4">{{.Contact}}</td>
+                    <td class="py-2 px-4">{{.MemberID}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</body>
+</html>
