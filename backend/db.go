@@ -12,8 +12,10 @@ func InitDB(dsn string) *sql.DB {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+
 	if err := db.Ping(); err != nil {
 		log.Fatalf("Failed to ping database: %v", err)
 	}
+
 	return db
 }

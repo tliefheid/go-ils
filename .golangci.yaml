@@ -1,0 +1,152 @@
+---
+version: "2"
+run:
+  issues-exit-code: 1
+  tests: false
+linters:
+  enable:
+    - asciicheck
+    - bodyclose
+    - contextcheck
+    - cyclop
+    - dogsled
+    - dupl
+    - errname
+    - exhaustive
+    - exhaustruct
+    - forcetypeassert
+    - funlen
+    - goconst
+    - gocyclo
+    - gosec
+    - loggercheck
+    - nestif
+    - perfsprint
+    - prealloc
+    - promlinter
+    - testifylint
+    - unconvert
+    - whitespace
+    - wsl
+    - zerologlint
+  settings:
+    cyclop:
+      max-complexity: 10
+      package-average: 0
+    dogsled:
+      max-blank-identifiers: 2
+    dupl:
+      threshold: 150
+    errcheck:
+      check-type-assertions: false
+      check-blank: false
+      exclude-functions:
+        - io/ioutil.ReadFile
+        - io.Copy(*bytes.Buffer)
+        - io.Copy(os.Stdout)
+        - (io.Closer).Close
+    exhaustive:
+      default-signifies-exhaustive: false
+    exhaustruct:
+      include:
+        - dev\.azure\.com
+    funlen:
+      lines: 200
+      statements: 200
+    goconst:
+      match-constant: true
+      min-len: 3
+      min-occurrences: 3
+      numbers: false
+      min: 3
+      max: 3
+      ignore-calls: true
+    godox:
+      keywords:
+        - NOTE
+        - OPTIMIZE
+        - HACK
+        - FIXME
+        - TODO
+    gosec:
+      includes:
+        - G401
+        - G306
+        - G101
+      excludes:
+        - G204
+      config:
+        G101:
+          entropy_threshold: "80.0"
+          ignore_entropy: false
+          pattern: (?i)example
+          per_char_threshold: "3.0"
+          truncate: "32"
+        G306: "0600"
+    govet:
+      enable:
+        - atomicalign
+      disable:
+        - shadow
+      enable-all: false
+      settings:
+        printf:
+          funcs:
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+            - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+    nestif:
+      min-complexity: 4
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - dupl
+          - errcheck
+          - funlen
+          - gocyclo
+          - gosec
+        path: _test\.go
+      - linters:
+          - gosec
+        path: internal/hmac/
+        text: weak cryptographic primitive
+      - linters:
+          - staticcheck
+        text: "SA9003:"
+      - linters:
+          - lll
+        source: "^//go:generate "
+      - path: (.+)\.go$
+        text: abcdef
+    paths:
+      - vendor
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+  fix: true
+severity:
+  default: error
+  rules:
+    - linters:
+        - dupl
+      severity: info
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+  exclusions:
+    generated: lax
+    paths:
+      - vendor
+      - third_party$
+      - builtin$
+      - examples$

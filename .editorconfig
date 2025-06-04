@@ -1,0 +1,32 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[{*.json,*.yml,*.yaml,*.goyaml}]
+indent_style = space
+indent_size = 2
+
+[*.html]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+[{go.mod,go.sum,*.go,.gitmodules}]
+indent_style = tab
+indent_size = 4
+
+[*.md]
+indent_size = 4
+trim_trailing_whitespace = false
+eclint_indent_style = unset
+
+[Dockerfile]
+indent_size = 4
