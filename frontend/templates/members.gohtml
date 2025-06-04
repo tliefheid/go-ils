@@ -23,6 +23,7 @@
                     <th>Name</th>
                     <th>Contact</th>
                     <th>Member ID</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,6 +33,7 @@
                     <td>{{.Name}}</td>
                     <td>{{.Contact}}</td>
                     <td>{{.MemberID}}</td>
+                    <td><a href="/member?id={{.ID}}">Details</a></td>
                 </tr>
                 {{end}}
             </tbody>

@@ -309,9 +309,16 @@ func deleteBookHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// First, delete all borrowings for this book (to avoid FK constraint errors)
+	_, err = db.Exec("DELETE FROM borrowings WHERE book_id=$1", id)
+	if err != nil {
+		http.Error(w, "Database error (borrowings)", http.StatusInternalServerError)
+		return
+	}
+
 	_, err = db.Exec("DELETE FROM books WHERE id=$1", id)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		http.Error(w, "Database error (books)", http.StatusInternalServerError)
 		return
 	}
 
@@ -436,9 +443,16 @@ func deleteMemberHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// First, delete all borrowings for this member (to avoid FK constraint errors)
+	_, err = db.Exec("DELETE FROM borrowings WHERE member_id=$1", id)
+	if err != nil {
+		http.Error(w, "Database error (borrowings)", http.StatusInternalServerError)
+		return
+	}
+
 	_, err = db.Exec("DELETE FROM members WHERE id=$1", id)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		http.Error(w, "Database error (members)", http.StatusInternalServerError)
 		return
 	}
 

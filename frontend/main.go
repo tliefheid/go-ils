@@ -66,6 +66,9 @@ func main() {
 	http.HandleFunc("/borrowed-detail", borrowedDetailPage)
 	http.HandleFunc("/return-borrowing", returnBorrowingHandler)
 	http.HandleFunc("/reports", reportsPage)
+	http.HandleFunc("/member", memberDetailPage)
+	http.HandleFunc("/update-member", updateMemberHandler)
+	http.HandleFunc("/delete-member", deleteMemberHandler)
 	log.Println("Frontend UI running on :3000")
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
@@ -596,4 +599,111 @@ func reportsPage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 	}
+}
+
+// Handler for member detail page
+func memberDetailPage(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "Missing member id", 400)
+		return
+	}
+	resp, err := http.Get(backendURL + "/members")
+	if err != nil {
+		http.Error(w, "Failed to fetch members", 500)
+		return
+	}
+	defer resp.Body.Close()
+	var members []Member
+	if err := json.NewDecoder(resp.Body).Decode(&members); err != nil {
+		http.Error(w, "Failed to decode members", 500)
+		return
+	}
+	var member *Member
+	for _, m := range members {
+		if strconv.Itoa(m.ID) == id {
+			member = &m
+			break
+		}
+	}
+	if member == nil {
+		http.Error(w, "Member not found", 404)
+		return
+	}
+	err = templates.ExecuteTemplate(w, "member_detail.gohtml", map[string]interface{}{"Member": member})
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+}
+
+// Handler for updating member details
+func updateMemberHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	id := r.FormValue("id")
+	name := r.FormValue("name")
+	contact := r.FormValue("contact")
+	memberID := r.FormValue("member_id")
+	if id == "" || name == "" || memberID == "" {
+		http.Error(w, "Missing fields", 400)
+		return
+	}
+	mid, _ := strconv.Atoi(id)
+	m := Member{
+		ID:       mid,
+		Name:     name,
+		Contact:  contact,
+		MemberID: memberID,
+	}
+	b, _ := json.Marshal(m)
+	req, err := http.NewRequest(http.MethodPut, backendURL+"/members", bytes.NewReader(b))
+	if err != nil {
+		http.Error(w, "Failed to create request", 500)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		http.Error(w, "Failed to update member", 500)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 204 {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, string(body), resp.StatusCode)
+		return
+	}
+	http.Redirect(w, r, "/member?id="+id, http.StatusSeeOther)
+}
+
+// Handler for deleting a member
+func deleteMemberHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	id := r.FormValue("id")
+	if id == "" {
+		http.Error(w, "Missing member id", 400)
+		return
+	}
+	req, err := http.NewRequest(http.MethodDelete, backendURL+"/members?id="+id, nil)
+	if err != nil {
+		http.Error(w, "Failed to create request", 500)
+		return
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		http.Error(w, "Failed to delete member", 500)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 204 {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, string(body), resp.StatusCode)
+		return
+	}
+	http.Redirect(w, r, "/members", http.StatusSeeOther)
 }

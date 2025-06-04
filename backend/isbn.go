@@ -61,11 +61,17 @@ func LookupByISBN(isbn string) (*Book, error) {
 		return nil, fmt.Errorf("error looking up book by ISBN: %v", err)
 	}
 
-	authorKey := isbnInfo.Authors[0].Key
+	authorName := "Unknown"
 
-	authorInfo, err := lookupAuthor(authorKey)
-	if err != nil {
-		return nil, fmt.Errorf("error looking up author: %v", err)
+	if len(isbnInfo.Authors) > 0 {
+		authorKey := isbnInfo.Authors[0].Key
+
+		authorInfo, err := lookupAuthor(authorKey)
+		if err != nil {
+			return nil, fmt.Errorf("error looking up author: %v", err)
+		}
+
+		authorName = authorInfo.Name
 	}
 
 	year, err := strconv.Atoi(isbnInfo.Created.Value[:4])
@@ -75,7 +81,7 @@ func LookupByISBN(isbn string) (*Book, error) {
 
 	book := &Book{
 		Title:           isbnInfo.Title,
-		Author:          authorInfo.Name,
+		Author:          authorName,
 		ISBN:            isbn,
 		Genre:           "Unknown", // Genre not available in Open Library API
 		PublicationYear: year,

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Member Details</title>
+    <link rel="stylesheet" href="/static/pico.min.css">
+</head>
+<body>
+    <main class="container">
+        <nav>
+            <ul>
+                <li><a href="/">Books</a></li>
+                <li><a href="/members">Members</a></li>
+                <li><a href="/borrowed">Borrowed Books</a></li>
+                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
+                <li><a href="/reports">Reports</a></li>
+            </ul>
+        </nav>
+        <a href="/members">&larr; Back to Members</a>
+        <h1>Member Details</h1>
+        <section>
+            <table>
+                <tr><th>Name</th><td>{{.Member.Name}}</td></tr>
+                <tr><th>Contact</th><td>{{.Member.Contact}}</td></tr>
+                <tr><th>Member ID</th><td>{{.Member.MemberID}}</td></tr>
+            </table>
+        </section>
+        <section>
+            <h2>Edit Member</h2>
+            <form method="POST" action="/update-member">
+                <input type="hidden" name="id" value="{{.Member.ID}}">
+                <label>Name: <input type="text" name="name" value="{{.Member.Name}}" required></label>
+                <label>Contact: <input type="text" name="contact" value="{{.Member.Contact}}"></label>
+                <label>Member ID: <input type="text" name="member_id" value="{{.Member.MemberID}}" required></label>
+                <button type="submit">Update Member</button>
+            </form>
+            <hr>
+            <h2>Delete Member</h2>
+            <form method="POST" action="/delete-member" onsubmit="return confirm('Are you sure you want to delete this member?');">
+                <input type="hidden" name="id" value="{{.Member.ID}}">
+                <button type="submit" style="background:#c00;color:#fff;">Delete Member</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>
