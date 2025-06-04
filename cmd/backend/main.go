@@ -91,6 +91,7 @@ func main() {
 	http.HandleFunc("/reports/overdue", func(w http.ResponseWriter, r *http.Request) {
 		overdueBooksReportHandler(db, w, r)
 	})
+	http.HandleFunc("/isbn", isbnInfoHandler)
 
 	http.HandleFunc("/reports/member", func(w http.ResponseWriter, r *http.Request) {
 		memberHistoryReportHandler(db, w, r)
@@ -100,6 +101,29 @@ func main() {
 	if err := http.ListenAndServe(":8180", nil); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}
+}
+
+// isbnInfoHandler fetches book info from Open Library API by ISBN
+func isbnInfoHandler(w http.ResponseWriter, r *http.Request) {
+	isbn := r.URL.Query().Get("isbn")
+	if isbn == "" {
+		http.Error(w, "Missing isbn parameter", http.StatusBadRequest)
+		return
+	}
+	url := fmt.Sprintf("https://openlibrary.org/isbn/%s.json", isbn)
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode != 200 {
+		http.Error(w, "Failed to fetch info from Open Library", http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+	var book backend.Book
+	if err := json.NewDecoder(resp.Body).Decode(&book); err != nil {
+		http.Error(w, "Failed to decode response", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(book)
 }
 
 func runMigrations(db *sql.DB) error {
