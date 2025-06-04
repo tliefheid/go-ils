@@ -511,8 +511,13 @@ func updateBookHandler(w http.ResponseWriter, r *http.Request) {
 
 	bookID := r.FormValue("book_id")
 	copiesTotal := r.FormValue("copies_total")
+	title := r.FormValue("title")
+	author := r.FormValue("author")
+	isbn := r.FormValue("isbn")
+	genre := r.FormValue("genre")
+	publicationYear := r.FormValue("publication_year")
 
-	if bookID == "" || copiesTotal == "" {
+	if bookID == "" || copiesTotal == "" || title == "" || author == "" || isbn == "" || publicationYear == "" {
 		http.Error(w, "Missing fields", 400)
 		return
 	}
@@ -544,14 +549,16 @@ func updateBookHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Book not found", 404)
 		return
 	}
-	// Update copies total
-	var ct int
+	// Update all fields from form
+	book.Title = title
+	book.Author = author
+	book.ISBN = isbn
+	book.Genre = genre
+	fmt.Sscanf(publicationYear, "%d", &book.PublicationYear)
+	fmt.Sscanf(copiesTotal, "%d", &book.CopiesTotal)
 
-	fmt.Sscanf(copiesTotal, "%d", &ct)
-
-	book.CopiesTotal = ct
-	if book.CopiesAvailable > ct {
-		book.CopiesAvailable = ct // Don't allow more available than total
+	if book.CopiesAvailable > book.CopiesTotal {
+		book.CopiesAvailable = book.CopiesTotal // Don't allow more available than total
 	}
 
 	b, _ := json.Marshal(book)
