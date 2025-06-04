@@ -200,7 +200,7 @@ func isbnInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	book, err := backend.LookupByISBN(isbn)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error fetching book info: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error fetching book info: %v", err), http.StatusBadRequest)
 		return
 	}
 

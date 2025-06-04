@@ -16,6 +16,10 @@
             </ul>
         </nav>
         <h1>Books</h1>
+        <form method="GET" action="/">
+            <input type="text" name="q" placeholder="Search by title, author, or ISBN" value="{{.Query}}" style="width:300px;">
+            <button type="submit">Search</button>
+        </form>
         <table>
             <thead>
                 <tr>
@@ -31,7 +35,7 @@
                 </tr>
             </thead>
             <tbody>
-                {{range .}}
+                {{range .Books}}
                 <tr>
                     <td>{{.ID}}</td>
                     <td>{{.Title}}</td>

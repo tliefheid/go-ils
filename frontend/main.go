@@ -74,7 +74,17 @@ func main() {
 }
 
 func booksPage(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Get(backendURL + "/books")
+	q := r.URL.Query().Get("q")
+
+	var resp *http.Response
+
+	var err error
+	if q != "" {
+		resp, err = http.Get(backendURL + "/books/search?q=" + q)
+	} else {
+		resp, err = http.Get(backendURL + "/books")
+	}
+
 	if err != nil {
 		http.Error(w, "Failed to fetch books", 500)
 		return
@@ -88,7 +98,10 @@ func booksPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templates.ExecuteTemplate(w, "books.gohtml", books)
+	templates.ExecuteTemplate(w, "books.gohtml", map[string]interface{}{
+		"Books": books,
+		"Query": q,
+	})
 }
 
 func bookDetailPage(w http.ResponseWriter, r *http.Request) {
@@ -350,8 +363,20 @@ func isbnLookupPage(w http.ResponseWriter, r *http.Request) {
 		}
 
 		resp, err := http.Get(backendURL + "/isbn?isbn=" + isbn)
+
+		fmt.Println("get isbn lookup page")
+		fmt.Printf("resp: %+v\n", resp)
+		fmt.Printf("err: %v\n", err)
+
 		if err != nil {
 			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to contact backend"})
+			return
+		}
+
+		if resp.StatusCode != 200 {
+			body, _ := io.ReadAll(resp.Body)
+			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": string(body)})
+
 			return
 		}
 
@@ -380,36 +405,48 @@ func isbnLookupPage(w http.ResponseWriter, r *http.Request) {
 		}
 		// Fetch info from backend
 		resp, err := http.Get(backendURL + "/isbn?isbn=" + isbn)
+
+		fmt.Println("post isbn lookup page")
+		fmt.Printf("resp: %+v\n", resp)
+		fmt.Printf("err: %v\n", err)
+
 		if err != nil {
 			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to contact backend"})
 			return
 		}
 
+		if resp.StatusCode != 200 {
+			body, _ := io.ReadAll(resp.Body)
+			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": string(body)})
+
+			return
+		}
+
 		defer resp.Body.Close()
 
-		var book map[string]interface{}
+		var book Book
 		if err := json.NewDecoder(resp.Body).Decode(&book); err != nil {
 			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to decode response"})
 			return
 		}
 		// Prepare minimal book struct for backend
-		newBook := map[string]interface{}{
-			"title":            book["title"],
-			"author":           "",
-			"isbn":             isbn,
-			"genre":            "",
-			"publication_year": book["publish_date"],
-			"copies_total":     1,
-			"copies_available": 1,
-		}
+		// newBook := map[string]interface{}{
+		// 	"title":            book["title"],
+		// 	"author":           "",
+		// 	"isbn":             isbn,
+		// 	"genre":            "",
+		// 	"publication_year": book["publish_date"],
+		// 	"copies_total":     1,
+		// 	"copies_available": 1,
+		// }
 
-		if authors, ok := book["authors"].([]interface{}); ok && len(authors) > 0 {
-			if authorMap, ok := authors[0].(map[string]interface{}); ok {
-				newBook["author"] = authorMap["name"]
-			}
-		}
+		// if authors, ok := book["authors"].([]interface{}); ok && len(authors) > 0 {
+		// 	if authorMap, ok := authors[0].(map[string]interface{}); ok {
+		// 		newBook["author"] = authorMap["name"]
+		// 	}
+		// }
 
-		b, _ := json.Marshal(newBook)
+		b, _ := json.Marshal(book)
 
 		resp2, err := http.Post(backendURL+"/books", "application/json", bytes.NewReader(b))
 		if err != nil {
@@ -608,28 +645,35 @@ func memberDetailPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing member id", 400)
 		return
 	}
+
 	resp, err := http.Get(backendURL + "/members")
 	if err != nil {
 		http.Error(w, "Failed to fetch members", 500)
 		return
 	}
+
 	defer resp.Body.Close()
+
 	var members []Member
 	if err := json.NewDecoder(resp.Body).Decode(&members); err != nil {
 		http.Error(w, "Failed to decode members", 500)
 		return
 	}
+
 	var member *Member
+
 	for _, m := range members {
 		if strconv.Itoa(m.ID) == id {
 			member = &m
 			break
 		}
 	}
+
 	if member == nil {
 		http.Error(w, "Member not found", 404)
 		return
 	}
+
 	err = templates.ExecuteTemplate(w, "member_detail.gohtml", map[string]interface{}{"Member": member})
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -642,14 +686,17 @@ func updateMemberHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
 	id := r.FormValue("id")
 	name := r.FormValue("name")
 	contact := r.FormValue("contact")
+
 	memberID := r.FormValue("member_id")
 	if id == "" || name == "" || memberID == "" {
 		http.Error(w, "Missing fields", 400)
 		return
 	}
+
 	mid, _ := strconv.Atoi(id)
 	m := Member{
 		ID:       mid,
@@ -658,23 +705,30 @@ func updateMemberHandler(w http.ResponseWriter, r *http.Request) {
 		MemberID: memberID,
 	}
 	b, _ := json.Marshal(m)
+
 	req, err := http.NewRequest(http.MethodPut, backendURL+"/members", bytes.NewReader(b))
 	if err != nil {
 		http.Error(w, "Failed to create request", 500)
 		return
 	}
+
 	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		http.Error(w, "Failed to update member", 500)
 		return
 	}
+
 	defer resp.Body.Close()
+
 	if resp.StatusCode != 204 {
 		body, _ := io.ReadAll(resp.Body)
 		http.Error(w, string(body), resp.StatusCode)
+
 		return
 	}
+
 	http.Redirect(w, r, "/member?id="+id, http.StatusSeeOther)
 }
 
@@ -684,26 +738,33 @@ func deleteMemberHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
 	id := r.FormValue("id")
 	if id == "" {
 		http.Error(w, "Missing member id", 400)
 		return
 	}
+
 	req, err := http.NewRequest(http.MethodDelete, backendURL+"/members?id="+id, nil)
 	if err != nil {
 		http.Error(w, "Failed to create request", 500)
 		return
 	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		http.Error(w, "Failed to delete member", 500)
 		return
 	}
+
 	defer resp.Body.Close()
+
 	if resp.StatusCode != 204 {
 		body, _ := io.ReadAll(resp.Body)
 		http.Error(w, string(body), resp.StatusCode)
+
 		return
 	}
+
 	http.Redirect(w, r, "/members", http.StatusSeeOther)
 }

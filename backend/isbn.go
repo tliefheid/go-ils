@@ -57,7 +57,10 @@ type AuthorResponse struct {
 
 func LookupByISBN(isbn string) (*Book, error) {
 	isbnInfo, err := lookupBook(isbn)
+	fmt.Printf("isbnInfo: %+v\n", isbnInfo)
+
 	if err != nil {
+		fmt.Printf("isbnInfo err: %v\n", err)
 		return nil, fmt.Errorf("error looking up book by ISBN: %v", err)
 	}
 
