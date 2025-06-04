@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Borrowed Book Details</title>
+    <link rel="stylesheet" href="/static/pico.min.css">
+</head>
+<body>
+    <main class="container">
+        <nav>
+            <ul>
+                <li><a href="/">Books</a></li>
+                <li><a href="/members">Members</a></li>
+                <li><a href="/borrowed">Borrowed Books</a></li>
+                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
+                <li><a href="/reports">Reports</a></li>
+            </ul>
+        </nav>
+        <a href="/borrowed">&larr; Back to Borrowed Books</a>
+        <h1>Borrowed Book Details</h1>
+        <section>
+            <table>
+                <tr><th>Book Title</th><td>{{.Borrowing.BookTitle}}</td></tr>
+                <tr><th>Member</th><td>{{.Borrowing.MemberName}}</td></tr>
+                <tr><th>Issue Date</th><td>{{.Borrowing.IssueDate}}</td></tr>
+                <tr><th>Due Date</th><td>{{.Borrowing.DueDate}}</td></tr>
+                <tr><th>Return Date</th><td>{{if .Borrowing.ReturnDate}}{{.Borrowing.ReturnDate}}{{else}}Not returned{{end}}</td></tr>
+                <tr><th>Fine</th><td>${{.Borrowing.Fine}}</td></tr>
+            </table>
+        </section>
+        {{if not .Borrowing.ReturnDate}}
+        <form method="POST" action="/return-borrowing">
+            <input type="hidden" name="borrowing_id" value="{{.Borrowing.ID}}">
+            <button type="submit">Return Book</button>
+        </form>
+        {{end}}
+    </main>
+</body>
+</html>

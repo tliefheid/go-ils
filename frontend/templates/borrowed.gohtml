@@ -12,6 +12,7 @@
                 <li><a href="/members">Members</a></li>
                 <li><a href="/borrowed">Borrowed Books</a></li>
                 <li><a href="/isbn-lookup">ISBN Lookup</a></li>
+                <li><a href="/reports">Reports</a></li>
             </ul>
         </nav>
         <h1>Borrowed Books</h1>
@@ -23,6 +24,7 @@
                     <th>Member</th>
                     <th>Issue Date</th>
                     <th>Due Date</th>
+                    <th>Details</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,6 +35,7 @@
                     <td>{{.Member}}</td>
                     <td>{{.IssueDate}}</td>
                     <td>{{.DueDate}}</td>
+                    <td><a href="/borrowed-detail?book_id={{.BookID}}&member={{.Member}}">Details</a></td>
                 </tr>
                 {{end}}
             </tbody>

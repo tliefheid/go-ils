@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -96,6 +97,90 @@ func main() {
 
 	http.HandleFunc("/reports/member", func(w http.ResponseWriter, r *http.Request) {
 		memberHistoryReportHandler(db, w, r)
+	})
+
+	// Add /borrowing endpoint to serve borrowing details by id
+	http.HandleFunc("/borrowing", func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.URL.Query().Get("id")
+		if idStr == "" {
+			http.Error(w, "Missing borrowing id", http.StatusBadRequest)
+			return
+		}
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil || id == 0 {
+			http.Error(w, "Invalid borrowing id", http.StatusBadRequest)
+			return
+		}
+
+		var detail struct {
+			ID         int        `json:"id"`
+			BookID     int        `json:"book_id"`
+			BookTitle  string     `json:"book_title"`
+			MemberID   int        `json:"member_id"`
+			MemberName string     `json:"member_name"`
+			IssueDate  time.Time  `json:"issue_date"`
+			DueDate    time.Time  `json:"due_date"`
+			ReturnDate *time.Time `json:"return_date"`
+			Fine       float64    `json:"fine"`
+		}
+
+		row := db.QueryRow(`SELECT br.id, br.book_id, b.title, br.member_id, m.name, br.issue_date, br.due_date, br.return_date, br.fine FROM borrowings br JOIN books b ON br.book_id = b.id JOIN members m ON br.member_id = m.id WHERE br.id = $1`, id)
+
+		err = row.Scan(&detail.ID, &detail.BookID, &detail.BookTitle, &detail.MemberID, &detail.MemberName, &detail.IssueDate, &detail.DueDate, &detail.ReturnDate, &detail.Fine)
+		if err != nil {
+			http.Error(w, "Borrowing not found", http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(detail)
+	})
+
+	// Add /borrowed-detail endpoint to get borrowing by book_id and member (unreturned)
+	http.HandleFunc("/borrowed-detail", func(w http.ResponseWriter, r *http.Request) {
+		bookIDStr := r.URL.Query().Get("book_id")
+		memberIDStr := r.URL.Query().Get("member_id")
+
+		if bookIDStr == "" || memberIDStr == "" {
+			http.Error(w, "Missing book_id or member_id", http.StatusBadRequest)
+			return
+		}
+
+		bookID, err := strconv.Atoi(bookIDStr)
+		if err != nil || bookID == 0 {
+			http.Error(w, "Invalid book_id", http.StatusBadRequest)
+			return
+		}
+
+		memberID, err := strconv.Atoi(memberIDStr)
+		if err != nil || memberID == 0 {
+			http.Error(w, "Invalid member_id", http.StatusBadRequest)
+			return
+		}
+
+		var detail struct {
+			ID         int        `json:"id"`
+			BookID     int        `json:"book_id"`
+			BookTitle  string     `json:"book_title"`
+			MemberID   int        `json:"member_id"`
+			MemberName string     `json:"member_name"`
+			IssueDate  time.Time  `json:"issue_date"`
+			DueDate    time.Time  `json:"due_date"`
+			ReturnDate *time.Time `json:"return_date"`
+			Fine       float64    `json:"fine"`
+		}
+
+		row := db.QueryRow(`SELECT br.id, br.book_id, b.title, br.member_id, m.name, br.issue_date, br.due_date, br.return_date, br.fine FROM borrowings br JOIN books b ON br.book_id = b.id JOIN members m ON br.member_id = m.id WHERE br.book_id = $1 AND br.member_id = $2 AND br.return_date IS NULL ORDER BY br.issue_date DESC LIMIT 1`, bookID, memberID)
+
+		err = row.Scan(&detail.ID, &detail.BookID, &detail.BookTitle, &detail.MemberID, &detail.MemberName, &detail.IssueDate, &detail.DueDate, &detail.ReturnDate, &detail.Fine)
+		if err != nil {
+			http.Error(w, "Borrowing not found", http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(detail)
 	})
 
 	fmt.Println("Library ILS Backend - Go API running on :8180")
@@ -363,30 +448,38 @@ func deleteMemberHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 // --- Borrow/Return Handlers ---
 func borrowBookHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		BookID   int `json:"book_id"`
-		MemberID int `json:"member_id"`
-		Days     int `json:"days"`
+		BookID   string `json:"book_id"`
+		MemberID string `json:"member_id"`
+		Days     string `json:"days"`
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
+
+	fmt.Printf("string(body): %v\n", string(body))
 
 	if err := json.Unmarshal(body, &req); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	if req.BookID == 0 || req.MemberID == 0 || req.Days <= 0 {
+	if req.BookID == "" || req.MemberID == "" || req.Days <= "" {
 		http.Error(w, "Missing or invalid fields", http.StatusBadRequest)
 		return
 	}
 	// Check book availability
 	var available int
 
-	err = db.QueryRow("SELECT copies_available FROM books WHERE id=$1", req.BookID).Scan(&available)
+	bookID, err := strconv.Atoi(req.BookID)
+	if err != nil {
+		http.Error(w, "Invalid book ID", http.StatusBadRequest)
+		return
+	}
+
+	err = db.QueryRow("SELECT copies_available FROM books WHERE id=$1", bookID).Scan(&available)
 	if err != nil {
 		http.Error(w, "Book not found", http.StatusNotFound)
 		return
@@ -398,15 +491,28 @@ func borrowBookHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	// Insert borrowing record
 	issueDate := time.Now()
-	dueDate := issueDate.AddDate(0, 0, req.Days)
 
-	_, err = db.Exec(`INSERT INTO borrowings (book_id, member_id, issue_date, due_date) VALUES ($1, $2, $3, $4)`, req.BookID, req.MemberID, issueDate, dueDate)
+	days, err := strconv.Atoi(req.Days)
+	if err != nil || days <= 0 {
+		http.Error(w, "Invalid number of days", http.StatusBadRequest)
+		return
+	}
+
+	dueDate := issueDate.AddDate(0, 0, days)
+
+	memberID, err := strconv.Atoi(req.MemberID)
+	if err != nil {
+		http.Error(w, "Invalid member ID", http.StatusBadRequest)
+		return
+	}
+
+	_, err = db.Exec(`INSERT INTO borrowings (book_id, member_id, issue_date, due_date) VALUES ($1, $2, $3, $4)`, bookID, memberID, issueDate, dueDate)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 	// Update book inventory
-	_, err = db.Exec("UPDATE books SET copies_available = copies_available - 1 WHERE id=$1", req.BookID)
+	_, err = db.Exec("UPDATE books SET copies_available = copies_available - 1 WHERE id=$1", bookID)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return

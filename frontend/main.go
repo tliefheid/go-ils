@@ -41,6 +41,18 @@ type BorrowedBook struct {
 	DueDate   string `json:"due_date"`
 }
 
+type BorrowingDetail struct {
+	ID         int     `json:"id"`
+	BookID     int     `json:"book_id"`
+	BookTitle  string  `json:"book_title"`
+	MemberID   int     `json:"member_id"`
+	MemberName string  `json:"member_name"`
+	IssueDate  string  `json:"issue_date"`
+	DueDate    string  `json:"due_date"`
+	ReturnDate *string `json:"return_date"`
+	Fine       float64 `json:"fine"`
+}
+
 func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", booksPage)
@@ -51,6 +63,9 @@ func main() {
 	http.HandleFunc("/isbn-lookup", isbnLookupPage)
 	http.HandleFunc("/delete-book", deleteBookHandler)
 	http.HandleFunc("/update-book", updateBookHandler)
+	http.HandleFunc("/borrowed-detail", borrowedDetailPage)
+	http.HandleFunc("/return-borrowing", returnBorrowingHandler)
+	http.HandleFunc("/reports", reportsPage)
 	log.Println("Frontend UI running on :3000")
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
@@ -164,6 +179,123 @@ func borrowedBooksPage(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "borrowed.gohtml", borrowed)
 }
 
+// Handler for borrowed book detail page
+func borrowedDetailPage(w http.ResponseWriter, r *http.Request) {
+	bookID := r.URL.Query().Get("book_id")
+	memberName := r.URL.Query().Get("member")
+
+	if bookID == "" || memberName == "" {
+		http.Error(w, "Missing book_id or member", 400)
+		return
+	}
+	// Fetch all members to resolve memberName to memberID
+	respMembers, err := http.Get(backendURL + "/members")
+	if err != nil {
+		http.Error(w, "Failed to fetch members", 500)
+		return
+	}
+
+	defer respMembers.Body.Close()
+
+	var members []Member
+	if err := json.NewDecoder(respMembers.Body).Decode(&members); err != nil {
+		http.Error(w, "Failed to decode members", 500)
+		return
+	}
+
+	var memberID string
+
+	for _, m := range members {
+		if m.Name == memberName {
+			memberID = strconv.Itoa(m.ID)
+			break
+		}
+	}
+
+	if memberID == "" {
+		http.Error(w, "Member not found", 404)
+		return
+	}
+	// Now call backend with book_id and member_id
+	resp, err := http.Get(backendURL + "/borrowed-detail?book_id=" + bookID + "&member_id=" + memberID)
+	if err != nil {
+		http.Error(w, "Failed to fetch borrowing detail", 500)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, string(body), resp.StatusCode)
+
+		return
+	}
+
+	var detail BorrowingDetail
+	if err := json.NewDecoder(resp.Body).Decode(&detail); err != nil {
+		http.Error(w, "Failed to decode borrowing detail", 500)
+		return
+	}
+
+	templates.ExecuteTemplate(w, "borrowed_detail.gohtml", map[string]interface{}{"Borrowing": detail})
+}
+
+// Handler for returning a borrowed book from the detail page
+func returnBorrowingHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	borrowingID := r.FormValue("borrowing_id")
+	if borrowingID == "" {
+		http.Error(w, "Missing borrowing ID", 400)
+		return
+	}
+	// Fetch borrowing detail to get book_id and member_id
+	resp, err := http.Get(backendURL + "/borrowing?id=" + borrowingID)
+	if err != nil {
+		http.Error(w, "Failed to fetch borrowing detail", 500)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, string(body), resp.StatusCode)
+
+		return
+	}
+
+	var detail BorrowingDetail
+	if err := json.NewDecoder(resp.Body).Decode(&detail); err != nil {
+		http.Error(w, "Failed to decode borrowing detail", 500)
+		return
+	}
+
+	payload := map[string]int{"book_id": detail.BookID, "member_id": detail.MemberID}
+	b, _ := json.Marshal(payload)
+
+	resp2, err := http.Post(backendURL+"/return", "application/json", bytes.NewReader(b))
+	if err != nil {
+		http.Error(w, "Failed to return book", 500)
+		return
+	}
+
+	defer resp2.Body.Close()
+
+	if resp2.StatusCode != 204 {
+		body, _ := io.ReadAll(resp2.Body)
+		http.Error(w, string(body), resp2.StatusCode)
+
+		return
+	}
+
+	http.Redirect(w, r, "/borrowed", http.StatusSeeOther)
+}
+
 func borrowBookHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -185,6 +317,8 @@ func borrowBookHandler(w http.ResponseWriter, r *http.Request) {
 		"days":      days,
 	}
 	jsonPayload, _ := json.Marshal(payload)
+
+	fmt.Printf("jsonPayload: %v\n", string(jsonPayload))
 
 	resp, err := http.Post(backendURL+"/borrow", "application/json", bytes.NewReader(jsonPayload))
 	if err != nil {
@@ -406,4 +540,60 @@ func updateBookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/book?id="+bookID, http.StatusSeeOther)
+}
+
+// Handler for the reports UI page
+func reportsPage(w http.ResponseWriter, r *http.Request) {
+	borrowedResp, err := http.Get(backendURL + "/reports/borrowed")
+	if err != nil {
+		http.Error(w, "Failed to fetch borrowed books", 500)
+		return
+	}
+
+	defer borrowedResp.Body.Close()
+
+	var borrowed []map[string]interface{}
+	if err := json.NewDecoder(borrowedResp.Body).Decode(&borrowed); err != nil {
+		http.Error(w, "Failed to decode borrowed books", 500)
+		return
+	}
+
+	overdueResp, err := http.Get(backendURL + "/reports/overdue")
+	if err != nil {
+		http.Error(w, "Failed to fetch overdue books", 500)
+		return
+	}
+
+	defer overdueResp.Body.Close()
+
+	var overdue []map[string]interface{}
+	if err := json.NewDecoder(overdueResp.Body).Decode(&overdue); err != nil {
+		http.Error(w, "Failed to decode overdue books", 500)
+		return
+	}
+
+	membersResp, err := http.Get(backendURL + "/members")
+	if err != nil {
+		http.Error(w, "Failed to fetch members", 500)
+		return
+	}
+
+	defer membersResp.Body.Close()
+
+	var members []map[string]interface{}
+	if err := json.NewDecoder(membersResp.Body).Decode(&members); err != nil {
+		http.Error(w, "Failed to decode members", 500)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Borrowed": borrowed,
+		"Overdue":  overdue,
+		"Members":  members,
+	}
+
+	err = templates.ExecuteTemplate(w, "reports.gohtml", data)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 }

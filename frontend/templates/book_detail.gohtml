@@ -12,54 +12,55 @@
                 <li><a href="/members">Members</a></li>
                 <li><a href="/borrowed">Borrowed Books</a></li>
                 <li><a href="/isbn-lookup">ISBN Lookup</a></li>
+                <li><a href="/reports">Reports</a></li>
             </ul>
         </nav>
         <a href="/">&larr; Back to Books</a>
         <h1>{{.Book.Title}}</h1>
-        <section>
-            <ul>
-                <li><b>Author:</b> {{.Book.Author}}</li>
-                <li><b>ISBN:</b> {{.Book.ISBN}}</li>
-                <li><b>Genre:</b> {{.Book.Genre}}</li>
-                <li><b>Publication Year:</b> {{.Book.PublicationYear}}</li>
-                <li><b>Copies Available:</b> {{.Book.CopiesAvailable}} / {{.Book.CopiesTotal}}</li>
-            </ul>
-        </section>
-        <section>
-            <h2>Update Book</h2>
-            <form method="POST" action="/update-book">
-                <input type="hidden" name="book_id" value="{{.Book.ID}}">
-                <label>Copies Total:
-                    <input type="number" name="copies_total" min="1" value="{{.Book.CopiesTotal}}" required>
-                </label>
-                <button type="submit">Update Book</button>
-            </form>
-        </section>
-        <section>
-            <h2>Borrow this Book</h2>
-            <form method="POST" action="/borrow">
-                <input type="hidden" name="book_id" value="{{.Book.ID}}">
-                <label>Member:
-                    <select name="member_id" required>
-                        <option value="">Select member</option>
-                        {{range .Members}}
-                        <option value="{{.ID}}">{{.Name}} ({{.MemberID}})</option>
-                        {{end}}
-                    </select>
-                </label>
-                <label>Days:
-                    <input type="number" name="days" min="1" max="60" value="14" required>
-                </label>
-                <button type="submit">Borrow</button>
-            </form>
-        </section>
-        <section style="margin-top:2em;">
-            <h2>Delete this Book</h2>
-            <form method="POST" action="/delete-book" onsubmit="return confirm('Are you sure you want to delete this book?');">
-                <input type="hidden" name="book_id" value="{{.Book.ID}}">
-                <button type="submit" style="background:#c00;color:#fff;">Delete Book</button>
-            </form>
-        </section>
+        <div style="display: flex; gap: 2em; align-items: flex-start; flex-wrap: wrap;">
+            <section style="flex:1; min-width: 250px;">
+                <table>
+                    <tr><th>Author</th><td>{{.Book.Author}}</td></tr>
+                    <tr><th>ISBN</th><td>{{.Book.ISBN}}</td></tr>
+                    <tr><th>Genre</th><td>{{.Book.Genre}}</td></tr>
+                    <tr><th>Publication Year</th><td>{{.Book.PublicationYear}}</td></tr>
+                    <tr><th>Copies Available</th><td>{{.Book.CopiesAvailable}} / {{.Book.CopiesTotal}}</td></tr>
+                </table>
+            </section>
+            <section style="flex:1; min-width: 300px;">
+                <h2>Update Book</h2>
+                <form method="POST" action="/update-book">
+                    <input type="hidden" name="book_id" value="{{.Book.ID}}">
+                    <label>Copies Total:
+                        <input type="number" name="copies_total" min="1" value="{{.Book.CopiesTotal}}" required>
+                    </label>
+                    <button type="submit">Update Book</button>
+                </form>
+                <hr>
+                <h2>Borrow this Book</h2>
+                <form method="POST" action="/borrow">
+                    <input type="hidden" name="book_id" value="{{.Book.ID}}">
+                    <label>Member:
+                        <select name="member_id" required>
+                            <option value="">Select member</option>
+                            {{range .Members}}
+                            <option value="{{.ID}}">{{.Name}} ({{.MemberID}})</option>
+                            {{end}}
+                        </select>
+                    </label>
+                    <label>Days:
+                        <input type="number" name="days" min="1" max="60" value="14" required>
+                    </label>
+                    <button type="submit">Borrow</button>
+                </form>
+                <hr>
+                <h2>Delete this Book</h2>
+                <form method="POST" action="/delete-book" onsubmit="return confirm('Are you sure you want to delete this book?');">
+                    <input type="hidden" name="book_id" value="{{.Book.ID}}">
+                    <button type="submit" style="background:#c00;color:#fff;">Delete Book</button>
+                </form>
+            </section>
+        </div>
     </main>
 </body>
 </html>
