@@ -26,6 +26,16 @@
             </ul>
         </section>
         <section>
+            <h2>Update Book</h2>
+            <form method="POST" action="/update-book">
+                <input type="hidden" name="book_id" value="{{.Book.ID}}">
+                <label>Copies Total:
+                    <input type="number" name="copies_total" min="1" value="{{.Book.CopiesTotal}}" required>
+                </label>
+                <button type="submit">Update Book</button>
+            </form>
+        </section>
+        <section>
             <h2>Borrow this Book</h2>
             <form method="POST" action="/borrow">
                 <input type="hidden" name="book_id" value="{{.Book.ID}}">

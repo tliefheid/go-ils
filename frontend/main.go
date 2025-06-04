@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 const backendURL = "http://localhost:8180"
@@ -49,6 +50,7 @@ func main() {
 	http.HandleFunc("/borrow", borrowBookHandler)
 	http.HandleFunc("/isbn-lookup", isbnLookupPage)
 	http.HandleFunc("/delete-book", deleteBookHandler)
+	http.HandleFunc("/update-book", updateBookHandler)
 	log.Println("Frontend UI running on :3000")
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
@@ -59,12 +61,15 @@ func booksPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to fetch books", 500)
 		return
 	}
+
 	defer resp.Body.Close()
+
 	var books []Book
 	if err := json.NewDecoder(resp.Body).Decode(&books); err != nil {
 		http.Error(w, "Failed to decode books", 500)
 		return
 	}
+
 	templates.ExecuteTemplate(w, "books.gohtml", books)
 }
 
@@ -74,24 +79,30 @@ func bookDetailPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing book id", 400)
 		return
 	}
+
 	resp, err := http.Get(backendURL + "/books")
 	if err != nil {
 		http.Error(w, "Failed to fetch books", 500)
 		return
 	}
+
 	defer resp.Body.Close()
+
 	var books []Book
 	if err := json.NewDecoder(resp.Body).Decode(&books); err != nil {
 		http.Error(w, "Failed to decode books", 500)
 		return
 	}
+
 	var book *Book
+
 	for _, b := range books {
-		if fmt.Sprintf("%d", b.ID) == id {
+		if strconv.Itoa(b.ID) == id {
 			book = &b
 			break
 		}
 	}
+
 	if book == nil {
 		http.Error(w, "Book not found", 404)
 		return
@@ -102,12 +113,15 @@ func bookDetailPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to fetch members", 500)
 		return
 	}
+
 	defer resp2.Body.Close()
+
 	var members []Member
 	if err := json.NewDecoder(resp2.Body).Decode(&members); err != nil {
 		http.Error(w, "Failed to decode members", 500)
 		return
 	}
+
 	templates.ExecuteTemplate(w, "book_detail.gohtml", struct {
 		Book    *Book
 		Members []Member
@@ -120,12 +134,15 @@ func membersPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to fetch members", 500)
 		return
 	}
+
 	defer resp.Body.Close()
+
 	var members []Member
 	if err := json.NewDecoder(resp.Body).Decode(&members); err != nil {
 		http.Error(w, "Failed to decode members", 500)
 		return
 	}
+
 	templates.ExecuteTemplate(w, "members.gohtml", members)
 }
 
@@ -135,44 +152,55 @@ func borrowedBooksPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to fetch borrowed books", 500)
 		return
 	}
+
 	defer resp.Body.Close()
+
 	var borrowed []BorrowedBook
 	if err := json.NewDecoder(resp.Body).Decode(&borrowed); err != nil {
 		http.Error(w, "Failed to decode borrowed books", 500)
 		return
 	}
+
 	templates.ExecuteTemplate(w, "borrowed.gohtml", borrowed)
 }
 
 func borrowBookHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", 405)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
 	bookID := r.FormValue("book_id")
 	memberID := r.FormValue("member_id")
 	days := r.FormValue("days")
+
 	if bookID == "" || memberID == "" || days == "" {
 		http.Error(w, "Missing fields", 400)
 		return
 	}
+
 	payload := map[string]string{
 		"book_id":   bookID,
 		"member_id": memberID,
 		"days":      days,
 	}
 	jsonPayload, _ := json.Marshal(payload)
+
 	resp, err := http.Post(backendURL+"/borrow", "application/json", bytes.NewReader(jsonPayload))
 	if err != nil {
 		http.Error(w, "Failed to borrow book", 500)
 		return
 	}
+
 	defer resp.Body.Close()
+
 	if resp.StatusCode != 204 {
 		body, _ := io.ReadAll(resp.Body)
 		http.Error(w, string(body), resp.StatusCode)
+
 		return
 	}
+
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -183,13 +211,17 @@ func isbnLookupPage(w http.ResponseWriter, r *http.Request) {
 			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": ""})
 			return
 		}
+
 		resp, err := http.Get(backendURL + "/isbn?isbn=" + isbn)
 		if err != nil {
 			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to contact backend"})
 			return
 		}
+
 		defer resp.Body.Close()
+
 		var pretty string
+
 		var raw map[string]interface{}
 		if err := json.NewDecoder(resp.Body).Decode(&raw); err == nil {
 			b, _ := json.MarshalIndent(raw, "", "  ")
@@ -197,9 +229,12 @@ func isbnLookupPage(w http.ResponseWriter, r *http.Request) {
 		} else {
 			pretty = "Failed to decode response"
 		}
+
 		templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Result": pretty})
+
 		return
 	}
+
 	if r.Method == http.MethodPost {
 		isbn := r.FormValue("isbn")
 		if isbn == "" {
@@ -212,7 +247,9 @@ func isbnLookupPage(w http.ResponseWriter, r *http.Request) {
 			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to contact backend"})
 			return
 		}
+
 		defer resp.Body.Close()
+
 		var book map[string]interface{}
 		if err := json.NewDecoder(resp.Body).Decode(&book); err != nil {
 			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to decode response"})
@@ -228,52 +265,145 @@ func isbnLookupPage(w http.ResponseWriter, r *http.Request) {
 			"copies_total":     1,
 			"copies_available": 1,
 		}
+
 		if authors, ok := book["authors"].([]interface{}); ok && len(authors) > 0 {
 			if authorMap, ok := authors[0].(map[string]interface{}); ok {
 				newBook["author"] = authorMap["name"]
 			}
 		}
+
 		b, _ := json.Marshal(newBook)
+
 		resp2, err := http.Post(backendURL+"/books", "application/json", bytes.NewReader(b))
 		if err != nil {
 			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to save book"})
 			return
 		}
+
 		defer resp2.Body.Close()
+
 		if resp2.StatusCode != 200 {
 			body, _ := io.ReadAll(resp2.Body)
 			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": string(body)})
+
 			return
 		}
+
 		templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Result": "Book saved to library!"})
 	}
 }
 
 func deleteBookHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", 405)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
 	bookID := r.FormValue("book_id")
 	if bookID == "" {
 		http.Error(w, "Missing book ID", 400)
 		return
 	}
+
 	req, err := http.NewRequest(http.MethodDelete, backendURL+"/books?id="+bookID, nil)
 	if err != nil {
 		http.Error(w, "Failed to create request", 500)
 		return
 	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		http.Error(w, "Failed to contact backend", 500)
 		return
 	}
+
 	defer resp.Body.Close()
+
 	if resp.StatusCode != 204 {
 		body, _ := io.ReadAll(resp.Body)
 		http.Error(w, string(body), resp.StatusCode)
+
 		return
 	}
+
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func updateBookHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	bookID := r.FormValue("book_id")
+	copiesTotal := r.FormValue("copies_total")
+
+	if bookID == "" || copiesTotal == "" {
+		http.Error(w, "Missing fields", 400)
+		return
+	}
+	// Fetch the book to get all fields
+	resp, err := http.Get(backendURL + "/books")
+	if err != nil {
+		http.Error(w, "Failed to fetch book", 500)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	var books []Book
+	if err := json.NewDecoder(resp.Body).Decode(&books); err != nil {
+		http.Error(w, "Failed to decode books", 500)
+		return
+	}
+
+	var book *Book
+
+	for _, b := range books {
+		if strconv.Itoa(b.ID) == bookID {
+			book = &b
+			break
+		}
+	}
+
+	if book == nil {
+		http.Error(w, "Book not found", 404)
+		return
+	}
+	// Update copies total
+	var ct int
+
+	fmt.Sscanf(copiesTotal, "%d", &ct)
+
+	book.CopiesTotal = ct
+	if book.CopiesAvailable > ct {
+		book.CopiesAvailable = ct // Don't allow more available than total
+	}
+
+	b, _ := json.Marshal(book)
+
+	req, err := http.NewRequest(http.MethodPut, backendURL+"/books", bytes.NewReader(b))
+	if err != nil {
+		http.Error(w, "Failed to create request", 500)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp2, err := http.DefaultClient.Do(req)
+	if err != nil {
+		http.Error(w, "Failed to update book", 500)
+		return
+	}
+
+	defer resp2.Body.Close()
+
+	if resp2.StatusCode != 204 {
+		body, _ := io.ReadAll(resp2.Body)
+		http.Error(w, string(body), resp2.StatusCode)
+
+		return
+	}
+
+	http.Redirect(w, r, "/book?id="+bookID, http.StatusSeeOther)
 }
