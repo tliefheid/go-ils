@@ -382,6 +382,8 @@ func addMemberHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	var m backend.Member
 
 	body, err := ioutil.ReadAll(r.Body)
+	fmt.Printf("body: %v\n", string(body))
+
 	if err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
@@ -392,11 +394,16 @@ func addMemberHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Printf("m: %v\n", m)
+
 	query := `INSERT INTO members (name, contact, member_id) VALUES ($1, $2, $3) RETURNING id`
 
 	err = db.QueryRow(query, m.Name, m.Contact, m.MemberID).Scan(&m.ID)
 	if err != nil {
+		fmt.Printf("err: %v\n", err)
+
 		http.Error(w, "Database error", http.StatusInternalServerError)
+
 		return
 	}
 

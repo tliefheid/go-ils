@@ -65,9 +65,10 @@ func main() {
 	http.HandleFunc("/borrowed-detail", borrowedDetailPage)
 	http.HandleFunc("/return-borrowing", returnBorrowingHandler)
 	http.HandleFunc("/reports", reportsPage)
-	http.HandleFunc("/member", memberDetailPage)
+	http.HandleFunc("/member-detail", memberDetailPage)
 	http.HandleFunc("/update-member", updateMemberHandler)
 	http.HandleFunc("/delete-member", deleteMemberHandler)
+	http.HandleFunc("/create-member", createMemberHandler)
 	log.Println("Frontend UI running on :3000")
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
@@ -173,7 +174,11 @@ func membersPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templates.ExecuteTemplate(w, "members.gohtml", members)
+	err = templates.ExecuteTemplate(w, "members.gohtml", members)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 }
 
 func borrowedBooksPage(w http.ResponseWriter, r *http.Request) {
@@ -630,6 +635,17 @@ func reportsPage(w http.ResponseWriter, r *http.Request) {
 // Handler for member detail page
 func memberDetailPage(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
+	isNew := r.URL.Query().Get("new") == "1"
+
+	if isNew {
+		templates.ExecuteTemplate(w, "member_detail.gohtml", map[string]interface{}{
+			"IsNew":  true,
+			"Member": Member{},
+		})
+
+		return
+	}
+
 	if id == "" {
 		http.Error(w, "Missing member id", 400)
 		return
@@ -640,7 +656,6 @@ func memberDetailPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to fetch members", 500)
 		return
 	}
-
 	defer resp.Body.Close()
 
 	var members []Member
@@ -663,7 +678,10 @@ func memberDetailPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = templates.ExecuteTemplate(w, "member_detail.gohtml", map[string]interface{}{"Member": member})
+	err = templates.ExecuteTemplate(w, "member_detail.gohtml", map[string]interface{}{
+		"IsNew":  false,
+		"Member": member,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 	}
@@ -679,8 +697,47 @@ func updateMemberHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	name := r.FormValue("name")
 	contact := r.FormValue("contact")
-
 	memberID := r.FormValue("member_id")
+
+	if r.URL.Query().Get("new") == "1" || id == "" {
+		// Create new member
+		if name == "" || memberID == "" {
+			http.Error(w, "Missing fields", 400)
+			return
+		}
+
+		m := Member{
+			Name:     name,
+			Contact:  contact,
+			MemberID: memberID,
+		}
+		b, _ := json.Marshal(m)
+
+		resp, err := http.Post(backendURL+"/members", "application/json", bytes.NewReader(b))
+		if err != nil {
+			fmt.Printf("post err: %v\n", err)
+			http.Error(w, "Failed to create member", 500)
+
+			return
+		}
+
+		fmt.Printf("resp.StatusCode: %v\n", resp.StatusCode)
+		defer resp.Body.Close()
+
+		if resp.StatusCode != 200 && resp.StatusCode != 201 {
+			body, _ := io.ReadAll(resp.Body)
+			fmt.Printf("string(body): %v\n", string(body))
+			http.Error(w, string(body), resp.StatusCode)
+
+			return
+		}
+		// Redirect to members list after creation
+		http.Redirect(w, r, "/members", http.StatusSeeOther)
+
+		return
+	}
+
+	// Update member
 	if id == "" || name == "" || memberID == "" {
 		http.Error(w, "Missing fields", 400)
 		return
@@ -718,7 +775,7 @@ func updateMemberHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/member?id="+id, http.StatusSeeOther)
+	http.Redirect(w, r, "/member-detail?id="+id, http.StatusSeeOther)
 }
 
 // Handler for deleting a member
@@ -749,6 +806,46 @@ func deleteMemberHandler(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 204 {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, string(body), resp.StatusCode)
+
+		return
+	}
+
+	http.Redirect(w, r, "/members", http.StatusSeeOther)
+}
+
+// Handler for creating a new member
+func createMemberHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	name := r.FormValue("name")
+	contact := r.FormValue("contact")
+	memberID := r.FormValue("member_id")
+
+	if name == "" || memberID == "" {
+		http.Error(w, "Missing fields", 400)
+		return
+	}
+
+	m := Member{
+		Name:     name,
+		Contact:  contact,
+		MemberID: memberID,
+	}
+	b, _ := json.Marshal(m)
+
+	resp, err := http.Post(backendURL+"/members", "application/json", bytes.NewReader(b))
+	if err != nil {
+		http.Error(w, "Failed to create member", 500)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
 		body, _ := io.ReadAll(resp.Body)
 		http.Error(w, string(body), resp.StatusCode)
 
