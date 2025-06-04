@@ -47,6 +47,7 @@ func main() {
 	http.HandleFunc("/members", membersPage)
 	http.HandleFunc("/borrowed", borrowedBooksPage)
 	http.HandleFunc("/borrow", borrowBookHandler)
+	http.HandleFunc("/isbn-lookup", isbnLookupPage)
 	log.Println("Frontend UI running on :3000")
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
@@ -172,4 +173,77 @@ func borrowBookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func isbnLookupPage(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		isbn := r.URL.Query().Get("isbn")
+		if isbn == "" {
+			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": ""})
+			return
+		}
+		resp, err := http.Get(backendURL + "/isbn?isbn=" + isbn)
+		if err != nil {
+			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to contact backend"})
+			return
+		}
+		defer resp.Body.Close()
+		var pretty string
+		var raw map[string]interface{}
+		if err := json.NewDecoder(resp.Body).Decode(&raw); err == nil {
+			b, _ := json.MarshalIndent(raw, "", "  ")
+			pretty = string(b)
+		} else {
+			pretty = "Failed to decode response"
+		}
+		templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Result": pretty})
+		return
+	}
+	if r.Method == http.MethodPost {
+		isbn := r.FormValue("isbn")
+		if isbn == "" {
+			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": "", "Error": "Missing ISBN"})
+			return
+		}
+		// Fetch info from backend
+		resp, err := http.Get(backendURL + "/isbn?isbn=" + isbn)
+		if err != nil {
+			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to contact backend"})
+			return
+		}
+		defer resp.Body.Close()
+		var book map[string]interface{}
+		if err := json.NewDecoder(resp.Body).Decode(&book); err != nil {
+			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to decode response"})
+			return
+		}
+		// Prepare minimal book struct for backend
+		newBook := map[string]interface{}{
+			"title":            book["title"],
+			"author":           "",
+			"isbn":             isbn,
+			"genre":            "",
+			"publication_year": book["publish_date"],
+			"copies_total":     1,
+			"copies_available": 1,
+		}
+		if authors, ok := book["authors"].([]interface{}); ok && len(authors) > 0 {
+			if authorMap, ok := authors[0].(map[string]interface{}); ok {
+				newBook["author"] = authorMap["name"]
+			}
+		}
+		b, _ := json.Marshal(newBook)
+		resp2, err := http.Post(backendURL+"/books", "application/json", bytes.NewReader(b))
+		if err != nil {
+			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": "Failed to save book"})
+			return
+		}
+		defer resp2.Body.Close()
+		if resp2.StatusCode != 200 {
+			body, _ := io.ReadAll(resp2.Body)
+			templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Error": string(body)})
+			return
+		}
+		templates.ExecuteTemplate(w, "isbn_lookup.gohtml", map[string]interface{}{"ISBN": isbn, "Result": "Book saved to library!"})
+	}
 }

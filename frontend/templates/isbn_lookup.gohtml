@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ISBN Lookup</title>
+    <link rel="stylesheet" href="/static/pico.min.css">
+</head>
+<body>
+    <main class="container">
+        <h1>ISBN Lookup</h1>
+        <nav>
+            <a href="/">Books</a>
+            <a href="/members">Members</a>
+            <a href="/borrowed">Borrowed Books</a>
+        </nav>
+        <form method="GET" action="/isbn-lookup">
+            <label>ISBN:
+                <input type="text" name="isbn" value="{{.ISBN}}" required>
+            </label>
+            <button type="submit">Search</button>
+        </form>
+        {{if .Result}}
+        <section>
+            <h2>Book Info</h2>
+            <pre>{{.Result}}</pre>
+            <form method="POST" action="/isbn-lookup">
+                <input type="hidden" name="isbn" value="{{.ISBN}}">
+                <input type="hidden" name="save" value="1">
+                <button type="submit">Save Book to Library</button>
+            </form>
+        </section>
+        {{end}}
+        {{if .Error}}
+        <section>
+            <p style="color:red">Error: {{.Error}}</p>
+        </section>
+        {{end}}
+    </main>
+</body>
+</html>
