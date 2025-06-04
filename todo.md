@@ -1,0 +1,2 @@
+- auto create IDs for any new entry
+- auto focus on isbn entry field
