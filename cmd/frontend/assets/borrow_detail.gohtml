@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Borrowed Book Details</title>
+    <link rel="stylesheet" href="/assets/pico.min.css">
+</head>
+<body>
+    <main class="container">
+        <nav>
+            <ul>
+                <li><a href="/">Books</a></li>
+                <li><a href="/members">Members</a></li>
+                <li><a href="/borrow">Borrowed Books</a></li>
+                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
+                <li><a href="/reports">Reports</a></li>
+            </ul>
+        </nav>
+        <a href="/borrow">&larr; Back to Borrowed Books</a>
+        <h1>Borrowed Book Details</h1>
+        <section>
+            <table>
+                <tr><th>Book Title</th><td>{{.BookTitle}}</td></tr>
+                <tr><th>Member</th><td>{{.MemberName}}</td></tr>
+                <tr><th>Issue Date</th><td>{{.IssueDate}}</td></tr>
+                <tr><th>Return Date</th><td>{{if .ReturnDate}}{{.ReturnDate}}{{else}}Not returned{{end}}</td></tr>
+            </table>
+        </section>
+        {{if not .ReturnDate}}
+        <form method="POST" action="/return/{{.ID}}">
+            <button type="submit">Return Book</button>
+        </form>
+        {{end}}
+    </main>
+</body>
+</html>

@@ -12,8 +12,7 @@ CREATE TABLE IF NOT EXISTS books (
 CREATE TABLE IF NOT EXISTS members (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    contact TEXT,
-    member_id TEXT UNIQUE NOT NULL
+    contact TEXT
 );
 -- Borrowings table
 CREATE TABLE IF NOT EXISTS borrowings (
@@ -21,7 +20,5 @@ CREATE TABLE IF NOT EXISTS borrowings (
     book_id INT REFERENCES books(id),
     member_id INT REFERENCES members(id),
     issue_date TIMESTAMP NOT NULL,
-    due_date TIMESTAMP NOT NULL,
-    return_date TIMESTAMP,
-    fine NUMERIC DEFAULT 0
+    return_date TIMESTAMP
 );

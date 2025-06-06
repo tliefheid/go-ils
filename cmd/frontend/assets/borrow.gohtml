@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library - Borrowed Books</title>
+    <link rel="stylesheet" href="/assets/pico.min.css">
+</head>
+<body>
+    <main class="container">
+        <nav>
+            <ul>
+                <li><a href="/">Books</a></li>
+                <li><a href="/members">Members</a></li>
+                <li><a href="/borrow">Borrowed Books</a></li>
+                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
+                <li><a href="/reports">Reports</a></li>
+            </ul>
+        </nav>
+        <h1>Borrowed Books</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Book ID</th>
+                    <th>Title</th>
+                    <th>Member</th>
+                    <th>Issue Date</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .}}
+                <tr>
+                    <td>{{.ID}}</td>
+                    <td>{{.BookID}}</td>
+                    <td>{{.BookTitle}}</td>
+                    <td>{{.MemberName}}</td>
+                    <td>{{.IssueDate}}</td>
+                    <td><a href="/borrow/{{.ID}}">Details</a></td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

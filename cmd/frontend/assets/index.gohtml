@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Library Management System</title>
+    <link rel="stylesheet" href="/assets/pico.min.css">
+</head>
+<body>
+
+    <main class="container">
+     <nav>
+            <ul>
+                <li><a href="/books">Books</a></li>
+                <li><a href="/members">Members</a></li>
+                <li><a href="/borrowed">Borrowed Books</a></li>
+                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
+                <li><a href="/reports">Reports</a></li>
+            </ul>
+        </nav>
+        <p>Select a section to manage the library.</p>
+
+        <div class="grid" style="grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); gap: 1rem; margin-top: 2rem;">
+            <a href="/books"       class="contrast" style="font-size: 1.5rem; padding: 2rem; text-align: center; border-radius: 1rem; border: 2px solid #ccc;">
+            📚<br>Books
+            </a>
+            <a href="/members"     class="contrast" style="font-size: 1.5rem; padding: 2rem; text-align: center; border-radius: 1rem; border: 2px solid #ccc;">
+            👤<br>Members
+            </a>
+            <a href="/borrowed"    class="contrast" style="font-size: 1.5rem; padding: 2rem; text-align: center; border-radius: 1rem; border: 2px solid #ccc;">
+            📖<br>Borrowed Books
+            </a>
+            <a href="/isbn-lookup" class="contrast" style="font-size: 1.5rem; padding: 2rem; text-align: center; border-radius: 1rem; border: 2px solid #ccc;">
+            🔎<br>ISBN Lookup
+            </a>
+            <a href="/reports"     class="contrast" style="font-size: 1.5rem; padding: 2rem; text-align: center; border-radius: 1rem; border: 2px solid #ccc;">
+            📊<br>Reports
+            </a>
+            <div></div>
+        </div>
+    </main>
+</body>
+</html>

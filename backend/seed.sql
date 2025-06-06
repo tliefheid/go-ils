@@ -1,5 +1,5 @@
 -- Seed books
-tRUNCATE books RESTART IDENTITY CASCADE;
+TRUNCATE books RESTART IDENTITY CASCADE;
 INSERT INTO books (
         title,
         author,
@@ -50,8 +50,20 @@ VALUES (
     );
 -- Seed members
 TRUNCATE members RESTART IDENTITY CASCADE;
-INSERT INTO members (name, contact, member_id)
-VALUES ('Alice Smith', 'alice@example.com', 'M001'),
-    ('Bob Johnson', 'bob@example.com', 'M002'),
-    ('Charlie Brown', 'charlie@example.com', 'M003'),
-    ('Diana Prince', 'diana@example.com', 'M004');
+INSERT INTO members (name, contact)
+VALUES (
+        'Alice Smith',
+        'alice@example.com'
+    ),
+    (
+        'Bob Johnson',
+        'bob @example.com'
+    ),
+    (
+        'Charlie Brown',
+        'charlie @example.com '
+    ),
+    (
+        'Diana Prince',
+        'diana @example.com'
+    );

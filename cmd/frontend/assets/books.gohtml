@@ -6,17 +6,9 @@
 </head>
 <body>
     <main class="container">
-        <nav>
-            <ul>
-                <li><a href="/">Books</a></li>
-                <li><a href="/members">Members</a></li>
-                <li><a href="/borrowed">Borrowed Books</a></li>
-                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
-                <li><a href="/reports">Reports</a></li>
-            </ul>
-        </nav>
+        {{template "_nav.gothml" .}}
         <h1>Books</h1>
-        <form method="GET" action="/">
+        <form method="GET" action="/books">
             <input type="text" name="q" placeholder="Search by title, author, or ISBN" value="{{.Query}}" style="width:300px;">
             <button type="submit">Search</button>
         </form>
@@ -43,7 +35,7 @@
                     <td>{{.PublicationYear}}</td>
                     <td>{{.CopiesAvailable}}</td>
                     <td>{{.CopiesTotal}}</td>
-                    <td><a href="/book?id={{.ID}}">View</a></td>
+                    <td><a href="/books/{{.ID}}">View</a></td>
                 </tr>
                 {{end}}
             </tbody>

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/yourusername/library-ils-backend/internal/model"
 )
 
 type ISBN_Response struct {
@@ -55,7 +57,24 @@ type AuthorResponse struct {
 	Revision     int          `json:"revision"`
 }
 
-func LookupByISBN(isbn string) (*Book, error) {
+// isbnInfoHandler fetches book info from Open Library API by ISBN
+func (s *Service) isbnInfoHandler(w http.ResponseWriter, r *http.Request) {
+	isbn := r.URL.Query().Get("isbn")
+	if isbn == "" {
+		http.Error(w, "Missing isbn parameter", http.StatusBadRequest)
+		return
+	}
+
+	book, err := s.lookupByISBN(isbn)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error fetching book info: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	writeJSON(w, book)
+}
+
+func (s *Service) lookupByISBN(isbn string) (*model.Book, error) {
 	isbnInfo, err := lookupBook(isbn)
 	fmt.Printf("isbnInfo: %+v\n", isbnInfo)
 
@@ -82,7 +101,7 @@ func LookupByISBN(isbn string) (*Book, error) {
 		return nil, fmt.Errorf("error parsing publication (%v, [:4]: %v) year: %v", isbnInfo.Created.Value, isbnInfo.Created.Value[:4], err)
 	}
 
-	book := &Book{
+	book := &model.Book{
 		Title:           isbnInfo.Title,
 		Author:          authorName,
 		ISBN:            isbn,

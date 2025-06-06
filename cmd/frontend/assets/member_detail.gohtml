@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Member Details</title>
+    <link rel="stylesheet" href="/static/pico.min.css">
+</head>
+<body>
+    <main class="container">
+        <nav>
+            <ul>
+                <li><a href="/">Books</a></li>
+                <li><a href="/members">Members</a></li>
+                <li><a href="/borrowed">Borrowed Books</a></li>
+                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
+                <li><a href="/reports">Reports</a></li>
+            </ul>
+        </nav>
+        <a href="/members">&larr; Back to Members</a>
+        <h1>{{if .IsNew}}Add New Member{{else}}Member Details{{end}}</h1>
+        <form method="POST" action="{{if .IsNew}}/create-member{{else}}/update-member{{end}}" style="max-width: 420px; margin: 2em auto 0 auto; display: flex; flex-direction: column; gap: 1em;">
+            {{if not .IsNew}}
+            <input type="hidden" name="id" value="{{.Member.ID}}">
+            {{end}}
+            <label>Name
+                <input type="text" name="name" value="{{.Member.Name}}" required>
+            </label>
+            <label>Contact
+                <input type="text" name="contact" value="{{.Member.Contact}}" required>
+            </label>
+            <label>Member ID
+                <input type="text" name="member_id" value="{{.Member.MemberID}}" required>
+            </label>
+            <button type="submit">{{if .IsNew}}Create Member{{else}}Update Member{{end}}</button>
+        </form>
+        {{if not .IsNew}}
+        <form method="POST" action="/delete-member" style="max-width: 420px; margin: 2em auto 0 auto;">
+            <input type="hidden" name="id" value="{{.Member.ID}}">
+            <button type="submit" style="background:#c00;color:#fff; margin-top:1em;">Delete Member</button>
+        </form>
+        {{end}}
+    </main>
+</body>
+</html>
