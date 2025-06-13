@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/yourusername/library-ils-backend/internal/repository"
+	"github.com/tliefheid/go-ils/internal/repository"
 )
 
 type Service struct {

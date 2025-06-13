@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/yourusername/library-ils-backend/internal/model"
+	"github.com/tliefheid/go-ils/internal/model"
 )
 
 type ISBN_Response struct {

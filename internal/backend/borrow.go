@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/yourusername/library-ils-backend/internal/model"
+	"github.com/tliefheid/go-ils/internal/model"
 )
 
 func (s *Service) borrowBookHandler(w http.ResponseWriter, r *http.Request) {

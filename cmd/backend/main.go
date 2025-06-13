@@ -14,8 +14,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/yourusername/library-ils-backend/internal/backend"
-	"github.com/yourusername/library-ils-backend/internal/repository/postgres"
+	"github.com/tliefheid/go-ils/internal/backend"
+	"github.com/tliefheid/go-ils/internal/repository/postgres"
 )
 
 type Config struct {

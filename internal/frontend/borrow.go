@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/yourusername/library-ils-backend/internal/model"
+	"github.com/tliefheid/go-ils/internal/model"
 )
 
 func (s *Service) borrowPage(w http.ResponseWriter, r *http.Request) {

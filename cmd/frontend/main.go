@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/yourusername/library-ils-backend/internal/frontend"
+	"github.com/tliefheid/go-ils/internal/frontend"
 )
 
 //go:embed assets/*.css assets/*.gohtml

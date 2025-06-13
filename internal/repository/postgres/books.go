@@ -3,8 +3,8 @@ package postgres
 import (
 	"fmt"
 
-	"github.com/yourusername/library-ils-backend/internal/model"
-	"github.com/yourusername/library-ils-backend/internal/repository"
+	"github.com/tliefheid/go-ils/internal/model"
+	"github.com/tliefheid/go-ils/internal/repository"
 )
 
 func (s *Store) ListBooks() ([]model.Book, error) {

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"os"
 
-	"github.com/yourusername/library-ils-backend/internal/repository"
+	"github.com/tliefheid/go-ils/internal/repository"
 )
 
 type Store struct {

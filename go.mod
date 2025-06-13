@@ -1,4 +1,4 @@
-module github.com/yourusername/library-ils-backend
+module github.com/tliefheid/go-ils
 
 go 1.24.3
 

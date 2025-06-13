@@ -3,7 +3,7 @@ package repository
 import (
 	"errors"
 
-	"github.com/yourusername/library-ils-backend/internal/model"
+	"github.com/tliefheid/go-ils/internal/model"
 )
 
 var (

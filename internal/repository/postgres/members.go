@@ -3,7 +3,7 @@ package postgres
 import (
 	"fmt"
 
-	"github.com/yourusername/library-ils-backend/internal/model"
+	"github.com/tliefheid/go-ils/internal/model"
 )
 
 func (s *Store) ListMemberss() ([]model.Member, error) {

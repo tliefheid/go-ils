@@ -8,8 +8,8 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/yourusername/library-ils-backend/internal/model"
-	"github.com/yourusername/library-ils-backend/internal/repository"
+	"github.com/tliefheid/go-ils/internal/model"
+	"github.com/tliefheid/go-ils/internal/repository"
 )
 
 func (s *Service) listBooksHandler(w http.ResponseWriter, r *http.Request) {
