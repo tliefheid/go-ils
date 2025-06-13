@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/yourusername/library-ils-backend/internal/model"
+	"github.com/yourusername/library-ils-backend/internal/repository"
 )
 
 func (s *Service) listBooksHandler(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +66,27 @@ func (s *Service) getBookHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, book)
 }
 
+func (s *Service) isBookPresentHandler(w http.ResponseWriter, r *http.Request) {
+	isbn := chi.URLParam(r, "isbn")
+	if isbn == "" {
+		http.Error(w, "Missing ISBN", http.StatusBadRequest)
+		return
+	}
+
+	book, err := s.repository.SearchBookByISBN(isbn)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		http.Error(w, "Book not found, "+err.Error(), http.StatusNotFound)
+
+		return
+	}
+
+	writeJSON(w, book)
+}
 func (s *Service) addBookHandler(w http.ResponseWriter, r *http.Request) {
 	var b model.Book
 	// parse the request body
@@ -81,7 +103,10 @@ func (s *Service) addBookHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = s.repository.AddBook(b)
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		fmt.Printf("add book: repository err: %v\n", err)
+
+		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 
@@ -93,23 +118,33 @@ func (s *Service) editBookHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		fmt.Printf("read body err: %v\n", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
+
 		return
 	}
 
 	if err := json.Unmarshal(body, &b); err != nil {
+		fmt.Printf("unmarshal err: %v\n", err)
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
-	if b.ID == 0 {
+	if b.ID < 0 {
+		fmt.Println("Missing book ID: ", b.ID)
 		http.Error(w, "Missing book ID", http.StatusBadRequest)
+
 		return
 	}
+
+	fmt.Printf("update book: %+v\n", b)
 
 	err = s.repository.UpdateBook(b)
 	if err != nil {
+		fmt.Printf("update book: repository err: %v\n", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -117,7 +152,7 @@ func (s *Service) editBookHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) deleteBookHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := chi.URLParam(r, "id")
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id == 0 {

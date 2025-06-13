@@ -28,6 +28,31 @@ func (s *Store) ListMemberss() ([]model.Member, error) {
 
 	return members, nil
 }
+
+func (s *Store) SearchMembers(search string) ([]model.Member, error) {
+	rows, err := s.db.Query(`SELECT id, name, contact FROM members WHERE name ILIKE '%' || $1 || '%' OR contact ILIKE '%' || $1 || '%'`, search)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var members []model.Member
+
+	for rows.Next() {
+		var m model.Member
+
+		if err := rows.Scan(&m.ID, &m.Name, &m.Contact); err != nil {
+			fmt.Println("Error scanning row:", err)
+			continue
+		}
+
+		members = append(members, m)
+	}
+
+	return members, nil
+}
+
 func (s *Store) AddMember(member model.Member) error {
 	query := `INSERT INTO members (name, contact) VALUES ($1, $2)`
 

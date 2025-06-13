@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Book Details</title>
-    <link rel="stylesheet" href="/assets/pico.min.css">
+{{ template "head.gohtml" "book details" }}
+
     <style>
         .book-info-table th {
             text-align: right;
@@ -44,33 +44,30 @@
 </head>
 <body>
     <main class="container">
-        <nav>
-            <ul>
-                <li><a href="/books">Books</a></li>
-                <li><a href="/members">Members</a></li>
-                <li><a href="/borrowed">Borrowed Books</a></li>
-                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
-                <li><a href="/reports">Reports</a></li>
-            </ul>
-        </nav>
-        <a href="/">&larr; Back to Books</a>
-        <h1 style="margin-bottom:0.2em;">{{.Book.Title}}</h1>
+        {{template "nav.gohtml" .}}
+        <a href="/books">&larr; Back to Books</a>
+        {{/* <h1 style="margin-bottom:0.2em;">{{.Book.Title}}</h1> */}}
         <div class="main-flex" style="gap:2em;">
             <section style="flex:1 1 0; width: 40%;">
                 <article class="action-card">
                     <h2 style="margin-top:0;">Book Information</h2>
                     <table class="book-info-table" style="width:100%;margin-bottom:0.5em;">
+                        <tr><th>Title</th><td>{{.Book.Title}}</td></tr>
                         <tr><th>Author</th><td>{{.Book.Author}}</td></tr>
                         <tr><th>ISBN</th><td>{{.Book.ISBN}}</td></tr>
                         <tr><th>Publication Year</th><td>{{.Book.PublicationYear}}</td></tr>
                         <tr><th>Copies Available</th><td>{{.Book.CopiesAvailable}} / {{.Book.CopiesTotal}}</td></tr>
                     </table>
 
-                    <form method="POST" action="/delete-book" >
+                    <a href="/books/upsert/{{.Book.ID}}" role="button" style="width:100%; margin-top: 1em; margin-bottom: 1em;">Edit button</a>
+
+                    <form method="POST" action="/books/delete/{{.Book.ID}}" >
                         <input type="hidden" name="book_id" value="{{.Book.ID}}">
                         <button type="submit" style="background:#c00;color:#fff;border-color:#D93526">Delete Book</button>
                     </form>
                 </article>
+                </section>
+            <section style="flex:1 1 0; width: 40%;">
 
                 <article class="action-card">
                     <h2>Borrow Book</h2>
@@ -88,31 +85,7 @@
                     </form>
                 </article>
             </section>
-            <section style="flex:1 1 0; width: 40%; display: flex; flex-direction: column; gap: 2em;">
-                <article class="action-card">
-                    <h2>Edit Book</h2>
-                    <form method="POST" action="/update-book" style="display:grid; gap:0.7em;">
-                        <input type="hidden" name="book_id" value="{{.Book.ID}}">
-                        <label>Title
-                            <input type="text" name="title" value="{{.Book.Title}}" required>
-                        </label>
-                        <label>Author
-                            <input type="text" name="author" value="{{.Book.Author}}" required>
-                        </label>
-                        <label>ISBN
-                            <input type="text" name="isbn" value="{{.Book.ISBN}}" readonly required>
-                        </label>
-                        <label>Publication Year
-                            <input type="number" name="publication_year" value="{{.Book.PublicationYear}}" required>
-                        </label>
-                        <label>Copies Total
-                            <input type="number" name="copies_total" min="1" value="{{.Book.CopiesTotal}}" required>
-                        </label>
-                        <button type="submit">Update Book</button>
-                    </form>
-                </article>
 
-            </section>
         </div>
     </main>
 </body>

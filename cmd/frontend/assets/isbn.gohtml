@@ -1,22 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ISBN Lookup</title>
-    <link rel="stylesheet" href="/static/pico.min.css">
+{{ template "head.gohtml" "ISBN Lookup" }}
+
 </head>
 <body>
     <main class="container">
-        <nav>
-            <ul>
-                <li><a href="/">Books</a></li>
-                <li><a href="/members">Members</a></li>
-                <li><a href="/borrowed">Borrowed Books</a></li>
-                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
-                <li><a href="/reports">Reports</a></li>
-            </ul>
-        </nav>
+        {{template "nav.gohtml" .}}
         <h1>ISBN Lookup</h1>
-        <form method="GET" action="/isbn-lookup">
+        <form method="POST" action="/isbn">
             <label>ISBN:
                 <input type="text" name="isbn" value="{{.ISBN}}" required>
             </label>

@@ -1,20 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Borrowed Book Details</title>
-    <link rel="stylesheet" href="/assets/pico.min.css">
+{{ template "head.gohtml" "borrow details" }}
 </head>
 <body>
     <main class="container">
-        <nav>
-            <ul>
-                <li><a href="/">Books</a></li>
-                <li><a href="/members">Members</a></li>
-                <li><a href="/borrow">Borrowed Books</a></li>
-                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
-                <li><a href="/reports">Reports</a></li>
-            </ul>
-        </nav>
+        {{template "nav.gohtml" .}}
         <a href="/borrow">&larr; Back to Borrowed Books</a>
         <h1>Borrowed Book Details</h1>
         <section>

@@ -1,40 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Library - Members</title>
-    <link rel="stylesheet" href="/static/pico.min.css">
+{{ template "head.gohtml" "members" }}
 </head>
 <body>
     <main class="container">
-        <nav>
-            <ul>
-                <li><a href="/books">Books</a></li>
-                <li><a href="/members">Members</a></li>
-                <li><a href="/borrowed">Borrowed Books</a></li>
-                <li><a href="/isbn-lookup">ISBN Lookup</a></li>
-                <li><a href="/reports">Reports</a></li>
-            </ul>
-        </nav>
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5em;">
-            <a href="/member-detail?new=1" class="contrast" style="padding:0.5em 1.2em; font-weight:600; border-radius:6px; text-decoration:none;">+ Add New Member</a>
+        {{template "nav.gohtml" .}}
+
+        <div class="grid">
+            <h1>Members</h1>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5em;">
+                <a href="/members/new" class="contrast" style="padding:0.5em 1.2em; font-weight:600; border-radius:6px; text-decoration:none;">+ Add New Member</a>
+            </div>
         </div>
-        <h1>Members</h1>
+        <form method="GET" action="/members">
+            <fieldset role="group">
+                <input type="text" name="q" placeholder="Search by Name" value="{{.Query}}">
+                <button type="submit">Search</button>
+            </fieldset>
+        </form>
         <table>
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Contact</th>
-                    <th>Member ID</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {{range .}}
+                {{range .Members}}
                 <tr>
                     <td>{{.Name}}</td>
                     <td>{{.Contact}}</td>
-                    <td>{{.MemberID}}</td>
-                    <td><a href="/member-detail?id={{.ID}}">Details</a></td>
+                    <td><a href="/members/{{.ID}}">Details</a></td>
                 </tr>
                 {{end}}
             </tbody>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+{{ template "head.gohtml" "member details" }}
+
+</head>
+<body>
+    <main class="container">
+        {{template "nav.gohtml" .}}
+        <a href="/members">&larr; Back to Members</a>
+        <h1>{{if .IsNew}}Add New Member{{else}}Member Details{{end}}</h1>
+        <form method="POST" action="/members" >
+
+            {{if .IsNew}}
+            <input type="hidden" name="id" value="new">
+            {{ end}}
+            {{if not .IsNew}}
+            <input type="hidden" name="id" value="{{.Member.ID}}">
+            {{end}}
+            <label>Name
+                <input type="text" name="name" value="{{.Member.Name}}" required>
+            </label>
+            <label>Contact
+                <input type="text" name="contact" value="{{.Member.Contact}}" required>
+            </label>
+            <button type="submit">{{if .IsNew}}Add Member{{else}}Update Member{{end}}</button>
+        </form>
+        {{if not .IsNew}}
+        <form method="POST" action="/members/{{.Member.ID}}/delete">
+            <input type="hidden" name="id" value="{{.Member.ID}}">
+            <button type="submit" style="background:#c00;color:#fff;border-color:#D93526">Delete Member</button>
+        </form>
+        {{end}}
+    </main>
+</body>
+</html>

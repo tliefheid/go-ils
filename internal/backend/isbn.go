@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/yourusername/library-ils-backend/internal/model"
 )
 
@@ -59,7 +60,7 @@ type AuthorResponse struct {
 
 // isbnInfoHandler fetches book info from Open Library API by ISBN
 func (s *Service) isbnInfoHandler(w http.ResponseWriter, r *http.Request) {
-	isbn := r.URL.Query().Get("isbn")
+	isbn := chi.URLParam(r, "isbn")
 	if isbn == "" {
 		http.Error(w, "Missing isbn parameter", http.StatusBadRequest)
 		return
@@ -75,6 +76,12 @@ func (s *Service) isbnInfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) lookupByISBN(isbn string) (*model.Book, error) {
+	book, err := s.repository.SearchBookByISBN(isbn)
+	if err == nil && book != nil {
+		fmt.Printf("Found book in local store: %+v\n", book)
+		return book, nil
+	}
+
 	isbnInfo, err := lookupBook(isbn)
 	fmt.Printf("isbnInfo: %+v\n", isbnInfo)
 
@@ -101,7 +108,7 @@ func (s *Service) lookupByISBN(isbn string) (*model.Book, error) {
 		return nil, fmt.Errorf("error parsing publication (%v, [:4]: %v) year: %v", isbnInfo.Created.Value, isbnInfo.Created.Value[:4], err)
 	}
 
-	book := &model.Book{
+	book = &model.Book{
 		Title:           isbnInfo.Title,
 		Author:          authorName,
 		ISBN:            isbn,

@@ -1,28 +1,36 @@
 package frontend
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
 func (s *Service) returnPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("returnPost called")
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		http.Error(w, "Missing return id", 400)
+		s.errorPage(w, "Missing borrow ID", nil)
 		return
 	}
 
 	resp, err := http.Post(s.uri+"/returns/"+id, "application/json", nil)
 	if err != nil {
-		http.Error(w, "Failed to fetch return", 500)
+		s.errorPage(w, "Failed to return book", err)
 		return
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-		http.Error(w, "Failed to return book", resp.StatusCode)
+		s.errorPage(w,
+			"Failed to return book",
+			errors.New("Invalid response status code: "+resp.Status),
+		)
+
 		return
 	}
 

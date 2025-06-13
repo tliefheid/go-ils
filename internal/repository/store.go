@@ -1,6 +1,14 @@
 package repository
 
-import "github.com/yourusername/library-ils-backend/internal/model"
+import (
+	"errors"
+
+	"github.com/yourusername/library-ils-backend/internal/model"
+)
+
+var (
+	ErrNotFound = errors.New("not found")
+)
 
 type Store interface {
 	BookStore
@@ -13,6 +21,7 @@ type Store interface {
 
 type BookStore interface {
 	ListBooks() ([]model.Book, error)
+	SearchBookByISBN(isbn string) (*model.Book, error)
 	SearchBooks(search string) ([]model.Book, error)
 	AddBook(book model.Book) error
 	GetBook(id int) (*model.Book, error)
@@ -21,6 +30,7 @@ type BookStore interface {
 }
 type MemberStore interface {
 	ListMemberss() ([]model.Member, error)
+	SearchMembers(search string) ([]model.Member, error)
 	AddMember(member model.Member) error
 	GetMember(id int) (*model.Member, error)
 	UpdateMember(member model.Member) error

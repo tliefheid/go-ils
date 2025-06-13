@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+{{ template "head.gohtml" "error" }}
+
+</head>
+<body>
+    <main class="container">
+        {{template "nav.gohtml" .}}
+        <article style="margin: 3em auto; padding: 2em; border-radius: 10px;">
+            <h1 style="display: flex; align-items: center; gap: 0.5em;">
+                <span style="color: #dc3545; font-size: 1.5em;" aria-hidden="true">
+                    &#9888;
+                </span>
+                Error
+            </h1>
+            <p style="font-size:1.2em;">{{.Message}}</p>
+            {{if .Details}}
+            <pre style="background:#f8d7da; color:#721c24; padding:1em; border-radius:6px;">{{.Details}}</pre>
+            {{end}}
+            <a href="/" class="contrast">Back to Home</a>
+        </article>
+    </main>
+</body>
+</html>

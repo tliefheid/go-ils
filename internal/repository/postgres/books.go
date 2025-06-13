@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/yourusername/library-ils-backend/internal/model"
+	"github.com/yourusername/library-ils-backend/internal/repository"
 )
 
 func (s *Store) ListBooks() ([]model.Book, error) {
@@ -28,6 +29,38 @@ func (s *Store) ListBooks() ([]model.Book, error) {
 	return books, nil
 }
 
+func (s *Store) SearchBookByISBN(isbn string) (*model.Book, error) {
+	rows, err := s.db.Query(`SELECT id, title, author, isbn, publication_year, copies_total, copies_available FROM books WHERE isbn ILIKE '%' || $1 || '%'`, isbn)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var books []*model.Book
+
+	for rows.Next() {
+		var b model.Book
+		if err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.ISBN, &b.PublicationYear, &b.CopiesTotal, &b.CopiesAvailable); err != nil {
+			fmt.Println("Error scanning row:", err)
+			continue
+		}
+
+		books = append(books, &b)
+	}
+
+	fmt.Printf("search with isbn: len(books): %v\n", len(books))
+
+	if len(books) == 0 {
+		return nil, repository.ErrNotFound
+	}
+
+	if len(books) > 1 {
+		return nil, fmt.Errorf("multiple books found with isbn %s", isbn)
+	}
+
+	return books[0], nil
+}
 func (s *Store) SearchBooks(search string) ([]model.Book, error) {
 	rows, err := s.db.Query(`SELECT id, title, author, isbn, publication_year, copies_total, copies_available FROM books WHERE title ILIKE '%' || $1 || '%' OR author ILIKE '%' || $1 || '%' OR isbn ILIKE '%' || $1 || '%'`, search)
 	if err != nil {

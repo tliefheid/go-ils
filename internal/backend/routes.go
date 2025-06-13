@@ -31,6 +31,7 @@ func (s *Service) setupRoutes() {
 
 	s.mux.Mount("/returns", s.handleReturnsRoutes())
 	s.mux.Mount("/borrow", s.handleBorrowRoutes())
+	s.mux.Mount("/reports", s.handleReportsRoutes())
 }
 
 func (s *Service) handleReturnsRoutes() *chi.Mux {
@@ -55,7 +56,7 @@ func (s *Service) handleBooksRoutes() *chi.Mux {
 	mux.Get("/", s.listBooksHandler)
 	mux.Get("/search", s.searchBooks)
 	mux.Post("/", s.addBookHandler)
-
+	mux.Get("/isbn/{isbn}", s.isBookPresentHandler)
 	mux.Route("/{id}", func(mux chi.Router) {
 		mux.Get("/", s.getBookHandler)
 		mux.Put("/", s.editBookHandler)
@@ -68,6 +69,8 @@ func (s *Service) handleMemberRoutes() *chi.Mux {
 	mux := chi.NewRouter()
 
 	mux.Get("/", s.listMembersHandler)
+	mux.Get("/search", s.searchMembers)
+
 	mux.Post("/", s.addMemberHandler)
 
 	mux.Route("/{id}", func(mux chi.Router) {
@@ -75,6 +78,14 @@ func (s *Service) handleMemberRoutes() *chi.Mux {
 		mux.Put("/", s.editMemberHandler)
 		mux.Delete("/", s.deleteMemberHandler)
 	})
+
+	return mux
+}
+
+func (s *Service) handleReportsRoutes() *chi.Mux {
+	mux := chi.NewRouter()
+
+	mux.Get("/borrowed", s.getBorrowedBooksHandler)
 
 	return mux
 }

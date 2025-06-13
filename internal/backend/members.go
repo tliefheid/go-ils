@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/yourusername/library-ils-backend/internal/model"
 )
 
@@ -20,8 +21,31 @@ func (s *Service) listMembersHandler(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, members)
 }
+
+func (s *Service) searchMembers(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+	if query == "" {
+		fmt.Println("Missing search query")
+		http.Error(w, "Missing search query", http.StatusBadRequest)
+
+		return
+	}
+
+	members, err := s.repository.SearchMembers(query)
+	if err != nil {
+		fmt.Println("Error searching books:", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+
+		return
+	}
+
+	fmt.Printf("len(members): %v\n", len(members))
+	fmt.Printf("members: %v\n", members)
+	writeJSON(w, members)
+}
+
 func (s *Service) getMemberHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := chi.URLParam(r, "id")
 	if idStr == "" {
 		http.Error(w, "Missing member ID", http.StatusBadRequest)
 		return
@@ -48,21 +72,28 @@ func (s *Service) addMemberHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
+		fmt.Println("Error reading request body:", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
+
 		return
 	}
 
 	if err := json.Unmarshal(body, &m); err != nil {
+		fmt.Println("Error unmarshalling JSON:", err)
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+
 		return
 	}
 
 	err = s.repository.AddMember(m)
 	if err != nil {
+		fmt.Println("Error adding member:", err)
 		http.Error(w, fmt.Sprintf("Failed to add member: %v", err), http.StatusInternalServerError)
+
 		return
 	}
 
+	fmt.Println("Successfully added member:", m)
 	writeJSON(w, m)
 }
 
@@ -95,7 +126,7 @@ func (s *Service) editMemberHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) deleteMemberHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := chi.URLParam(r, "id")
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id == 0 {

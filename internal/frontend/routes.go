@@ -25,10 +25,13 @@ func (s *Service) setupRoutes() {
 	})
 
 	s.mux.Get("/", s.indexPage)
+	s.mux.Get("/error", s.tempErrorPage)
+	s.mux.Mount("/isbn", s.isbnRoutes())
 	s.mux.Mount("/books", s.handleBooksRoutes())
 	s.mux.Mount("/members", s.handleMembersRoutes())
 	s.mux.Mount("/borrow", s.handleBorrowRoutes())
 	s.mux.Mount("/return", s.handleReturnRoutes())
+	s.mux.Get("/reports", s.reportsPage)
 	// http.HandleFunc("/members", membersPage)
 	// http.HandleFunc("/borrowed", borrowedBooksPage)
 	// http.HandleFunc("/borrow", borrowBookHandler)
@@ -53,6 +56,9 @@ func (s *Service) handleBooksRoutes() *chi.Mux {
 
 	mux.Get("/", s.booksPage)
 	mux.Get("/{id}", s.bookDetailPage)
+	mux.Post("/", s.bookPost)
+	mux.Get("/upsert/{id}", s.bookUpsertPage)
+	mux.Post("/delete/{id}", s.deleteBookPost)
 	// mux.Post("/", s.addBookHandler)
 
 	// mux.Route("/{id}", func(mux chi.Router) {
@@ -68,13 +74,22 @@ func (s *Service) handleMembersRoutes() *chi.Mux {
 
 	mux.Get("/", s.memberPage)
 	mux.Get("/{id}", s.memberDetailPage)
-	// mux.Post("/", s.addBookHandler)
+	mux.Post("/", s.memberPost)
+	mux.Post("/{id}/delete", s.memberDeletePost)
 
 	// mux.Route("/{id}", func(mux chi.Router) {
 	// 	mux.Get("/", s.getBookHandler)
 	// 	mux.Put("/", s.editBookHandler)
 	// 	mux.Delete("/", s.deleteBookHandler)
 	// })
+
+	return mux
+}
+func (s *Service) isbnRoutes() *chi.Mux {
+	mux := chi.NewRouter()
+
+	mux.Get("/", s.isbnPage)
+	mux.Post("/", s.isbnPost)
 
 	return mux
 }

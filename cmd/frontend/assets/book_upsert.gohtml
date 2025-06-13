@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+{{ template "head.gohtml" "book details" }}
+</head>
+<body>
+    <main class="container">
+        {{template "nav.gohtml" .}}
+        <a href="/">&larr; Back to Books</a>
+        <h1>{{if .IsNew}}Add New Book{{else}}Book Details{{end}}</h1>
+        <form method="POST" action="/books">
+
+            {{if .IsNew}}
+            <input type="hidden" name="id" value="new">
+            {{ end}}
+            {{if not .IsNew}}
+            <input type="hidden" name="id" value="{{.Book.ID}}">
+            {{end}}
+
+            <label>ISBN
+                <input type="number" name="isbn" value="{{.Book.ISBN}}" {{if not .IsNew}}readonly{{end}} required
+                {{ if .ValidationError.isbn}}
+                    aria-invalid="true"
+                    aria-describedby="isbn-valid-helper"
+                {{ end }}
+                >
+
+                <small id="isbn-valid-helper">{{.ValidationError.isbn}}</small>
+
+            <label>Title
+                <input type="text" name="title" value="{{.Book.Title}}" required>
+            </label>
+            <label>Author
+                <input type="text" name="author" value="{{.Book.Author}}" required>
+            </label>
+
+            </label>
+            <label>Publication Year
+                <input type="number" name="publication_year" value="{{.Book.PublicationYear}}" min="0" required>
+            </label>
+            <label>Copies Total
+                <input type="number" name="copies_total" value="{{.Book.CopiesTotal}}" min="0" required>
+            </label>
+            <button type="submit">{{if .IsNew}}Add Book{{else}}Update Book{{end}}</button>
+        </form>
+        {{if not .IsNew}}
+        <form method="POST" action="/books/{{.Book.ID}}/delete">
+            <input type="hidden" name="id" value="{{.Book.ID}}">
+            <button type="submit" style="background:#c00;color:#fff;border-color:#D93526">Delete Book</button>
+        </form>
+        {{end}}
+    </main>
+</body>
+</html>
