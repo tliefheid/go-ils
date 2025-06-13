@@ -34,7 +34,7 @@ func LoadConfig() Config {
 		DBUser:     getEnv("DB_USER", "postgres"),
 		DBPassword: getEnv("DB_PASSWORD", "password"),
 		DBName:     getEnv("DB_NAME", "library"),
-		HTTP:       ":8182",
+		HTTP:       getEnv("HTTP", ":8080"),
 	}
 }
 

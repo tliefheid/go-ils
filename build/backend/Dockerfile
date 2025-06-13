@@ -1,18 +1,16 @@
-FROM golang:1.24-alpine
+FROM golang:1.24-alpine AS build
 
-WORKDIR /app
 COPY . .
+RUN go generate ./...
 
 ENV GO111MODULE=on
 ENV CGO_ENABLED=0
 
-RUN go generate ./...
-RUN go build -mod=vendor -ldflags="-s -w" -o /usr/local/bin/service ./cmd/frontend
+RUN go build -mod=vendor -ldflags="-s -w" -o /service ./cmd/backend
 
 FROM scratch
-COPY --from=build /usr/local/bin/service /usr/local/bin/app
-COPY cmd/frontend/assets /assets/
+COPY --from=build /service /app
+COPY cmd/backend/*.sql /
 EXPOSE 8080/tcp
 
-
-ENTRYPOINT ["/usr/local/bin/app"]
+ENTRYPOINT ["/app"]

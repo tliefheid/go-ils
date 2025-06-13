@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nasermirzaei89/env"
 	"github.com/tliefheid/go-ils/internal/frontend"
 )
 
@@ -27,7 +28,7 @@ func main() {
 		HTTP: ":4000",
 	}
 	s, err := frontend.New(frontend.Config{
-		BackendUri: "http://localhost:8182",
+		BackendUri: env.GetString("BACKEND_URI", "http://localhost:8080"),
 	})
 
 	if err != nil {
